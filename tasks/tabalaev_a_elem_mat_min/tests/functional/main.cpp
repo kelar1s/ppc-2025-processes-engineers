@@ -23,35 +23,30 @@ namespace tabalaev_a_elem_mat_min {
 class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
   static std::string PrintTestParam(const TestType &test_param) {
-    return std::to_string(std::get<0>(test_param)) + "_" + std::get<1>(test_param);
+    int minik = std::get<2>(test_param);
+    std::string str_minik = (minik < 0) ? "minus" + std::to_string(-minik) : std::to_string(minik);
+    return std::to_string(std::get<0>(test_param)) + "x" + std::to_string(std::get<1>(test_param)) + "_min" + str_minik + "_" + std::get<3>(test_param);
   }
 
  protected:
   void SetUp() override {
-    int width = -1;
-    int height = -1;
-    int channels = -1;
-    std::vector<uint8_t> img;
-    // Read image
-    {
-      std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_tabalaev_a_elem_mat_min, "pic.jpg");
-      auto *data = stbi_load(abs_path.c_str(), &width, &height, &channels, 0);
-      if (data == nullptr) {
-        throw std::runtime_error("Failed to load image: " + std::string(stbi_failure_reason()));
-      }
-      img = std::vector<uint8_t>(data, data + (static_cast<ptrdiff_t>(width * height * channels)));
-      stbi_image_free(data);
-      if (std::cmp_not_equal(width, height)) {
-        throw std::runtime_error("width != height: ");
-      }
-    }
-
+    std::srand(static_cast<unsigned>(time(nullptr)));
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    input_data_ = width - height + std::min(std::accumulate(img.begin(), img.end(), 0), channels);
+    int rows = std::get<0>(params);
+    int columns = std::get<1>(params);
+    int minik = std::get<2>(params);
+
+    std::vector<int> matrix(rows * columns);
+    for(int& elem: matrix){
+      elem = minik + std::rand() % (250 - minik + 1);
+    }
+    matrix[std::rand() % matrix.size()] = minik;
+    input_data_ = std::make_tuple(static_cast<size_t>(rows), static_cast<size_t>(columns), matrix);
+    expected_minik_ = minik;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return (input_data_ == output_data);
+    return (expected_minik_ == output_data);
   }
 
   InType GetTestInputData() final {
@@ -59,7 +54,8 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
   }
 
  private:
-  InType input_data_ = 0;
+  InType input_data_;
+  OutType expected_minik_ = 0;
 };
 
 namespace {
@@ -68,7 +64,11 @@ TEST_P(TabalaevAElemMatMinFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {std::make_tuple(3, "3"), std::make_tuple(5, "5"), std::make_tuple(7, "7")};
+const std::array<TestType, 3> kTestParam = {
+    std::make_tuple(3, 3, -15, "Small_matrix"),
+    std::make_tuple(5, 5, 32, "Medium_matrix"),
+    std::make_tuple(10, 10, -41, "Large_matrix")
+  };
 
 const auto kTestTasksList =
     std::tuple_cat(ppc::util::AddFuncTask<TabalaevAElemMatMinMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_elem_mat_min),

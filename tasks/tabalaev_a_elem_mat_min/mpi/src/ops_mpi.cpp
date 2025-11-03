@@ -17,56 +17,58 @@ TabalaevAElemMatMinMPI::TabalaevAElemMatMinMPI(const InType &in) {
 }
 
 bool TabalaevAElemMatMinMPI::ValidationImpl() {
-  return (GetInput() > 0) && (GetOutput() == 0);
+  auto& rows = std::get<0>(GetInput());
+  auto& columns = std::get<1>(GetInput());
+
+  if(rows <= 0 || columns <= 0) return false;
+
+  auto& matrix = std::get<2>(GetInput());
+
+  return (rows * columns == matrix.size()) && (GetOutput() == 0);
 }
 
 bool TabalaevAElemMatMinMPI::PreProcessingImpl() {
-  GetOutput() = 2 * GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 bool TabalaevAElemMatMinMPI::RunImpl() {
-  auto input = GetInput();
-  if (input == 0) {
-    return false;
-  }
+  auto& matrix = std::get<2>(GetInput());
 
-  for (InType i = 0; i < GetInput(); i++) {
-    for (InType j = 0; j < GetInput(); j++) {
-      for (InType k = 0; k < GetInput(); k++) {
-        std::vector<InType> tmp(i + j + k, 1);
-        GetOutput() += std::accumulate(tmp.begin(), tmp.end(), 0);
-        GetOutput() -= i + j + k;
-      }
+  int world_size = 1;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+  int world_rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+  size_t matrix_size = matrix.size();
+  size_t part_size = matrix_size / world_size;
+  size_t remainder = matrix_size % world_size;
+  
+
+  std::vector<int> local_vec(world_rank == 0 ? (part_size + remainder) : part_size);
+
+  if(world_rank == 0){
+    std::copy(matrix.begin(), matrix.begin() + part_size + remainder, local_vec.begin());
+    
+    for(int i = 1; i < world_size; i++){
+      size_t start = i * part_size + remainder;
+      MPI_Send(matrix.data() + start, part_size, MPI_INT, i, 0, MPI_COMM_WORLD);
     }
-  }
-
-  const int num_threads = ppc::util::GetNumThreads();
-  GetOutput() *= num_threads;
-
-  int rank = 0;
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  if (rank == 0) {
-    GetOutput() /= num_threads;
   } else {
-    int counter = 0;
-    for (int i = 0; i < num_threads; i++) {
-      counter++;
-    }
-
-    if (counter != 0) {
-      GetOutput() /= counter;
-    }
+    MPI_Recv(local_vec.data(), part_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
+  int local_minik = *std::min_element(local_vec.begin(), local_vec.end());
 
-  MPI_Barrier(MPI_COMM_WORLD);
-  return GetOutput() > 0;
+  int global_minik = 0;
+
+  MPI_Allreduce(&local_minik, &global_minik, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+
+  GetOutput() = global_minik;
+
+  return true;
 }
 
 bool TabalaevAElemMatMinMPI::PostProcessingImpl() {
-  GetOutput() -= GetInput();
-  return GetOutput() > 0;
+  return true;
 }
 
 }  // namespace tabalaev_a_elem_mat_min
