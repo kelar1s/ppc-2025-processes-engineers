@@ -17,12 +17,14 @@ TabalaevAElemMatMinMPI::TabalaevAElemMatMinMPI(const InType &in) {
 }
 
 bool TabalaevAElemMatMinMPI::ValidationImpl() {
-  auto& rows = std::get<0>(GetInput());
-  auto& columns = std::get<1>(GetInput());
+  auto &rows = std::get<0>(GetInput());
+  auto &columns = std::get<1>(GetInput());
 
-  if(rows <= 0 || columns <= 0) return false;
+  if (rows <= 0 || columns <= 0) {
+    return false;
+  }
 
-  auto& matrix = std::get<2>(GetInput());
+  auto &matrix = std::get<2>(GetInput());
 
   return (rows * columns == matrix.size()) && (GetOutput() == 0);
 }
@@ -32,7 +34,7 @@ bool TabalaevAElemMatMinMPI::PreProcessingImpl() {
 }
 
 bool TabalaevAElemMatMinMPI::RunImpl() {
-  auto& matrix = std::get<2>(GetInput());
+  auto &matrix = std::get<2>(GetInput());
 
   int world_size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -42,14 +44,13 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
   size_t matrix_size = matrix.size();
   size_t part_size = matrix_size / world_size;
   size_t remainder = matrix_size % world_size;
-  
 
   std::vector<int> local_vec(world_rank == 0 ? (part_size + remainder) : part_size);
 
-  if(world_rank == 0){
+  if (world_rank == 0) {
     std::copy(matrix.begin(), matrix.begin() + part_size + remainder, local_vec.begin());
-    
-    for(int i = 1; i < world_size; i++){
+
+    for (int i = 1; i < world_size; i++) {
       size_t start = i * part_size + remainder;
       MPI_Send(matrix.data() + start, part_size, MPI_INT, i, 0, MPI_COMM_WORLD);
     }

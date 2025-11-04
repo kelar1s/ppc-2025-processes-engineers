@@ -8,14 +8,12 @@
 namespace tabalaev_a_elem_mat_min {
 
 class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  
-
   void SetUp() override {
     size_t rows = 6;
     size_t columns = 6;
     std::vector<int> matrix(rows * columns);
-    for(size_t i = 0; i < rows; i++){
-      for(size_t j = 0; j < columns; j++){
+    for (size_t i = 0; i < rows; i++) {
+      for (size_t j = 0; j < columns; j++) {
         int index = i * columns + j;
         matrix[index] = i * i + j;
       }
@@ -25,7 +23,7 @@ class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, 
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    if(output_data == expected_minik_){
+    if (output_data == expected_minik_) {
       return true;
     }
     return false;
@@ -35,17 +33,17 @@ class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, 
     return input_data_;
   }
 
-  private:
-    InType input_data_{};
-    int expected_minik_ = -36;
+ private:
+  InType input_data_{};
+  int expected_minik_ = -36;
 };
 
 TEST_P(TabalaevAElemMatMinPerfTests, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks =
-    ppc::util::MakeAllPerfTasks<InType, TabalaevAElemMatMinMPI, TabalaevAElemMatMinSEQ>(PPC_SETTINGS_tabalaev_a_elem_mat_min);
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, TabalaevAElemMatMinMPI, TabalaevAElemMatMinSEQ>(
+    PPC_SETTINGS_tabalaev_a_elem_mat_min);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 

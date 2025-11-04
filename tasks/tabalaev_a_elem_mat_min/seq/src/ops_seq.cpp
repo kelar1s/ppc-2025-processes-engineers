@@ -15,12 +15,14 @@ TabalaevAElemMatMinSEQ::TabalaevAElemMatMinSEQ(const InType &in) {
 }
 
 bool TabalaevAElemMatMinSEQ::ValidationImpl() {
-  auto& rows = std::get<0>(GetInput());
-  auto& columns = std::get<1>(GetInput());
+  auto &rows = std::get<0>(GetInput());
+  auto &columns = std::get<1>(GetInput());
 
-  if(rows <= 0 || columns <= 0) return false;
+  if (rows <= 0 || columns <= 0) {
+    return false;
+  }
 
-  auto& matrix = std::get<2>(GetInput());
+  auto &matrix = std::get<2>(GetInput());
 
   return (rows * columns == matrix.size()) && (GetOutput() == 0);
 }
@@ -30,10 +32,10 @@ bool TabalaevAElemMatMinSEQ::PreProcessingImpl() {
 }
 
 bool TabalaevAElemMatMinSEQ::RunImpl() {
-  auto& matrix = std::get<2>(GetInput());
+  auto &matrix = std::get<2>(GetInput());
   int minik = matrix[0];
-  for(size_t i = 1; i < matrix.size(); i++){
-    if(matrix[i] < minik){
+  for (size_t i = 1; i < matrix.size(); i++) {
+    if (matrix[i] < minik) {
       minik = matrix[i];
     }
   }

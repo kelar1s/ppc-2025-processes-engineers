@@ -25,7 +25,8 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
   static std::string PrintTestParam(const TestType &test_param) {
     int minik = std::get<2>(test_param);
     std::string str_minik = (minik < 0) ? "minus" + std::to_string(-minik) : std::to_string(minik);
-    return std::to_string(std::get<0>(test_param)) + "x" + std::to_string(std::get<1>(test_param)) + "_min_" + str_minik + "_" + std::get<3>(test_param);
+    return std::to_string(std::get<0>(test_param)) + "x" + std::to_string(std::get<1>(test_param)) + "_min_" +
+           str_minik + "_" + std::get<3>(test_param);
   }
 
  protected:
@@ -37,7 +38,7 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
     int minik = std::get<2>(params);
 
     std::vector<int> matrix(rows * columns);
-    for(int& elem: matrix){
+    for (int &elem : matrix) {
       elem = minik + std::rand() % (250 - minik + 1);
     }
     matrix[std::rand() % matrix.size()] = minik;
@@ -64,15 +65,13 @@ TEST_P(TabalaevAElemMatMinFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {
-    std::make_tuple(3, 3, -15, "Small_matrix"),
-    std::make_tuple(5, 5, 32, "Medium_matrix"),
-    std::make_tuple(10, 10, -41, "Large_matrix")
-  };
+const std::array<TestType, 3> kTestParam = {std::make_tuple(3, 3, -15, "Small_matrix"),
+                                            std::make_tuple(5, 5, 32, "Medium_matrix"),
+                                            std::make_tuple(10, 10, -41, "Large_matrix")};
 
-const auto kTestTasksList =
-    std::tuple_cat(ppc::util::AddFuncTask<TabalaevAElemMatMinMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_elem_mat_min),
-                   ppc::util::AddFuncTask<TabalaevAElemMatMinSEQ, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_elem_mat_min));
+const auto kTestTasksList = std::tuple_cat(
+    ppc::util::AddFuncTask<TabalaevAElemMatMinMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_elem_mat_min),
+    ppc::util::AddFuncTask<TabalaevAElemMatMinSEQ, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_elem_mat_min));
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
