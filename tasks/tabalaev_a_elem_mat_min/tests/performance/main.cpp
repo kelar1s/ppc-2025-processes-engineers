@@ -8,21 +8,36 @@
 namespace tabalaev_a_elem_mat_min {
 
 class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  const int kCount_ = 100;
-  InType input_data_{};
+  
 
   void SetUp() override {
-    //input_data_ = kCount_;
+    size_t rows = 6;
+    size_t columns = 6;
+    std::vector<int> matrix(rows * columns);
+    for(size_t i = 0; i < rows; i++){
+      for(size_t j = 0; j < columns; j++){
+        int index = i * columns + j;
+        matrix[index] = i * i + j;
+      }
+    }
+    matrix[(rows * columns) / 2] = expected_minik_;
+    input_data_ = std::make_tuple(rows, columns, matrix);
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    if(output_data){}
-    return /*input_data_ ==  output_data */ true;
+    if(output_data == expected_minik_){
+      return true;
+    }
+    return false;
   }
 
   InType GetTestInputData() final {
     return input_data_;
   }
+
+  private:
+    InType input_data_{};
+    int expected_minik_ = -36;
 };
 
 TEST_P(TabalaevAElemMatMinPerfTests, RunPerfModes) {

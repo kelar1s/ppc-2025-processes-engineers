@@ -25,7 +25,7 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
   static std::string PrintTestParam(const TestType &test_param) {
     int minik = std::get<2>(test_param);
     std::string str_minik = (minik < 0) ? "minus" + std::to_string(-minik) : std::to_string(minik);
-    return std::to_string(std::get<0>(test_param)) + "x" + std::to_string(std::get<1>(test_param)) + "_min" + str_minik + "_" + std::get<3>(test_param);
+    return std::to_string(std::get<0>(test_param)) + "x" + std::to_string(std::get<1>(test_param)) + "_min_" + str_minik + "_" + std::get<3>(test_param);
   }
 
  protected:
