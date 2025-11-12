@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <vector>
+
 #include "tabalaev_a_elem_mat_min/common/include/common.hpp"
 #include "tabalaev_a_elem_mat_min/mpi/include/ops_mpi.hpp"
 #include "tabalaev_a_elem_mat_min/seq/include/ops_seq.hpp"
@@ -14,8 +17,8 @@ class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, 
     std::vector<int> matrix(rows * columns);
     for (size_t i = 0; i < rows; i++) {
       for (size_t j = 0; j < columns; j++) {
-        int index = i * columns + j;
-        matrix[index] = i * i + j;
+        int index = static_cast<int>(i * columns + j);
+        matrix[index] = static_cast<int>(i * i + j);
       }
     }
     matrix[(rows * columns) / 2] = expected_minik_;
@@ -23,10 +26,7 @@ class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, 
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    if (output_data == expected_minik_) {
-      return true;
-    }
-    return false;
+    return output_data == expected_minik_;
   }
 
   InType GetTestInputData() final {
@@ -34,7 +34,7 @@ class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, 
   }
 
  private:
-  InType input_data_{};
+  InType input_data_;
   int expected_minik_ = -36;
 };
 

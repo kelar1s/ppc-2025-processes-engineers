@@ -1,15 +1,11 @@
 #include <gtest/gtest.h>
-#include <stb/stb_image.h>
 
-#include <algorithm>
-#include <array>
 #include <cstddef>
-#include <cstdint>
-#include <numeric>
-#include <stdexcept>
+#include <cstdlib>
+#include <ctime>
+#include <random>
 #include <string>
 #include <tuple>
-#include <utility>
 #include <vector>
 
 #include "tabalaev_a_elem_mat_min/common/include/common.hpp"
@@ -31,17 +27,26 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
 
  protected:
   void SetUp() override {
-    std::srand(static_cast<unsigned>(time(nullptr)));
+    std::random_device rd;
+    gen_.seed(rd());
+
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
+
     int rows = std::get<0>(params);
     int columns = std::get<1>(params);
     int minik = std::get<2>(params);
 
-    std::vector<int> matrix(rows * columns);
+    std::vector<int> matrix(static_cast<size_t>(rows) * static_cast<size_t>(columns));
+
+    std::uniform_int_distribution<int> dist(minik, 250);
+
     for (int &elem : matrix) {
-      elem = minik + std::rand() % (250 - minik + 1);
+      elem = dist(gen_);
     }
-    matrix[std::rand() % matrix.size()] = minik;
+
+    std::uniform_int_distribution<size_t> pos_dist(0, matrix.size() - 1);
+    matrix[pos_dist(gen_)] = minik;
+
     input_data_ = std::make_tuple(static_cast<size_t>(rows), static_cast<size_t>(columns), matrix);
     expected_minik_ = minik;
   }
@@ -57,6 +62,7 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
  private:
   InType input_data_;
   OutType expected_minik_ = 0;
+  std::mt19937 gen_;
 };
 
 namespace {

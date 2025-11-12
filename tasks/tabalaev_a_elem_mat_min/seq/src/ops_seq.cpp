@@ -1,10 +1,10 @@
 #include "tabalaev_a_elem_mat_min/seq/include/ops_seq.hpp"
 
-#include <numeric>
+#include <algorithm>
+#include <cstddef>
 #include <vector>
 
 #include "tabalaev_a_elem_mat_min/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace tabalaev_a_elem_mat_min {
 
@@ -33,12 +33,9 @@ bool TabalaevAElemMatMinSEQ::PreProcessingImpl() {
 
 bool TabalaevAElemMatMinSEQ::RunImpl() {
   auto &matrix = std::get<2>(GetInput());
-  int minik = matrix[0];
-  for (size_t i = 1; i < matrix.size(); i++) {
-    if (matrix[i] < minik) {
-      minik = matrix[i];
-    }
-  }
+
+  int minik = *std::min_element(matrix.begin(), matrix.end());
+
   GetOutput() = minik;
   return true;
 }

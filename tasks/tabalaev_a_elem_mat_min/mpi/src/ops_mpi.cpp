@@ -2,11 +2,10 @@
 
 #include <mpi.h>
 
-#include <numeric>
+#include <algorithm>
 #include <vector>
 
 #include "tabalaev_a_elem_mat_min/common/include/common.hpp"
-#include "util/include/util.hpp"
 
 namespace tabalaev_a_elem_mat_min {
 
@@ -48,16 +47,16 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
   std::vector<int> local_vec(world_rank == 0 ? (part_size + remainder) : part_size);
 
   if (world_rank == 0) {
-    std::copy(matrix.begin(), matrix.begin() + part_size + remainder, local_vec.begin());
+    std::copy(matrix.begin(), matrix.begin() + static_cast<long>(part_size + remainder), local_vec.begin());
 
     for (int i = 1; i < world_size; i++) {
-      size_t start = i * part_size + remainder;
-      MPI_Send(matrix.data() + start, part_size, MPI_INT, i, 0, MPI_COMM_WORLD);
+      size_t start = (i * part_size) + remainder;
+      MPI_Send(matrix.data() + start, static_cast<int>(part_size), MPI_INT, i, 0, MPI_COMM_WORLD);
     }
   } else {
-    MPI_Recv(local_vec.data(), part_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(local_vec.data(), static_cast<int>(part_size), MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
-  int local_minik = *std::min_element(local_vec.begin(), local_vec.end());
+  int local_minik = *std::ranges::min_element(local_vec.begin(), local_vec.end());
 
   int global_minik = 0;
 
