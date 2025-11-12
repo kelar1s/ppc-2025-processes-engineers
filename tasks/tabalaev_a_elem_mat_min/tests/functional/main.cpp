@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>
@@ -27,9 +28,6 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
 
  protected:
   void SetUp() override {
-    std::random_device rd;
-    gen_.seed(rd());
-
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
 
     int rows = std::get<0>(params);
@@ -62,7 +60,7 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
  private:
   InType input_data_;
   OutType expected_minik_ = 0;
-  std::mt19937 gen_;
+  std::mt19937 gen_{std::random_device{}()};
 };
 
 namespace {

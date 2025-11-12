@@ -1,7 +1,6 @@
 #include "tabalaev_a_elem_mat_min/seq/include/ops_seq.hpp"
 
 #include <algorithm>
-#include <cstddef>
 #include <vector>
 
 #include "tabalaev_a_elem_mat_min/common/include/common.hpp"
@@ -34,7 +33,7 @@ bool TabalaevAElemMatMinSEQ::PreProcessingImpl() {
 bool TabalaevAElemMatMinSEQ::RunImpl() {
   auto &matrix = std::get<2>(GetInput());
 
-  int minik = *std::min_element(matrix.begin(), matrix.end());
+  int minik = *std::ranges::min_element(matrix.begin(), matrix.end());
 
   GetOutput() = minik;
   return true;

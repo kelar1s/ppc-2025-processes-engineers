@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <cstddef>
+#include <tuple>
 #include <vector>
 
 #include "tabalaev_a_elem_mat_min/common/include/common.hpp"
@@ -17,8 +18,8 @@ class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, 
     std::vector<int> matrix(rows * columns);
     for (size_t i = 0; i < rows; i++) {
       for (size_t j = 0; j < columns; j++) {
-        int index = static_cast<int>(i * columns + j);
-        matrix[index] = static_cast<int>(i * i + j);
+        int index = static_cast<int>((i * columns) + j);
+        matrix[index] = static_cast<int>((i * i) + j);
       }
     }
     matrix[(rows * columns) / 2] = expected_minik_;

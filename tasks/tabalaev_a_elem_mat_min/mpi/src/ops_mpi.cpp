@@ -3,6 +3,8 @@
 #include <mpi.h>
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <vector>
 
 #include "tabalaev_a_elem_mat_min/common/include/common.hpp"
@@ -47,7 +49,7 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
   std::vector<int> local_vec(world_rank == 0 ? (part_size + remainder) : part_size);
 
   if (world_rank == 0) {
-    std::copy(matrix.begin(), matrix.begin() + static_cast<long>(part_size + remainder), local_vec.begin());
+    std::copy(matrix.begin(), matrix.begin() + static_cast<int64_t>(part_size + remainder), local_vec.begin());
 
     for (int i = 1; i < world_size; i++) {
       size_t start = (i * part_size) + remainder;
