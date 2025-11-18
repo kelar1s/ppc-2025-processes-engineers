@@ -13,8 +13,8 @@ namespace tabalaev_a_elem_mat_min {
 
 class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
   void SetUp() override {
-    size_t rows = 10;
-    size_t columns = 10;
+    size_t rows = 10000;
+    size_t columns = 10000;
     std::vector<int> matrix(rows * columns);
     for (size_t i = 0; i < rows; i++) {
       for (size_t j = 0; j < columns; j++) {
@@ -36,7 +36,7 @@ class TabalaevAElemMatMinPerfTests : public ppc::util::BaseRunPerfTests<InType, 
 
  private:
   InType input_data_;
-  int expected_minik_ = -1000;
+  int expected_minik_ = -1000000;
 };
 
 TEST_P(TabalaevAElemMatMinPerfTests, RunPerfModes) {
