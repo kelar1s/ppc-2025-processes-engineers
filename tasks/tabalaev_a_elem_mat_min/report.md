@@ -71,17 +71,17 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
   auto &columns = std::get<1>(input);
   auto &matrix = std::get<2>(input);
 
-  int world_size;
+  int world_size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-  int world_rank;
+  int world_rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
   size_t part_size = rows / world_size;
   size_t remainder = rows % world_size;
 
-  size_t start = world_rank * part_size + std::min(static_cast<size_t>(world_rank), remainder);
+  size_t start = (world_rank * part_size) + std::min(static_cast<size_t>(world_rank), remainder);
   size_t finish = start + part_size;
-  if (world_rank < remainder) {
+  if (std::cmp_less(world_rank, remainder)) {
     finish += 1;
   }
 
@@ -89,11 +89,11 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
 
   for (size_t i = start; i < finish && i < rows; ++i) {
     for (size_t j = 0; j < columns; ++j) {
-      local_minik = std::min(local_minik, matrix[i * columns + j]);
+      local_minik = std::min(local_minik, matrix[(i * columns) + j]);
     }
   }
 
-  int global_minik;
+  int global_minik = 0;
   MPI_Allreduce(&local_minik, &global_minik, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
 
   GetOutput() = global_minik;
@@ -108,9 +108,9 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
 
 | Параметр           | Значение                      |
 |--------------------|-------------------------------|
-| **OS** | Windows 11 Pro 23H2  |
+| **OS** | Windows 11 Pro 25H2  |
 | **CPU** | AMD Ryzen 5 5600X (6 cores, 12 threads, 3.70 GHz) |
-| **RAM** | 16 GB DDR4 3200 МГц      |
+| **RAM** | 16 GB DDR4 3400 МГц      |
 | **Компилятор**      | MSVC 14.43.34808 |
 | **Версия MPI**      | Microsoft MPI 10.1.12498.52 |
 
@@ -125,11 +125,12 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
 
 ### Сравнение производительности
 
-Для сравнения производительности использовалась матрица размером 5000×5000.
+Для сравнения производительности использовалась матрица размером `5000×5000`.
 
 Вычисления производились по следующим формулам:
-`Ускорение = Время_последовательное / Время_параллельное`
-`Эффективность = (Ускорение / Количество_процессов) × 100%`
+
+- `Ускорение = Время_последовательное / Время_параллельное`
+- `Эффективность = (Ускорение / Количество_процессов) × 100%`
 
 | Режим выполнения | Количество процессов | Время выполнения (сек) | Ускорение | Эффективность |
 |------------------|---------------------|------------------------|-----------|---------------|
