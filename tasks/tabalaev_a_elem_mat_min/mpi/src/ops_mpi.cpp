@@ -21,14 +21,9 @@ TabalaevAElemMatMinMPI::TabalaevAElemMatMinMPI(const InType &in) {
 bool TabalaevAElemMatMinMPI::ValidationImpl() {
   auto &rows = std::get<0>(GetInput());
   auto &columns = std::get<1>(GetInput());
-
-  if (rows <= 0 || columns <= 0) {
-    return false;
-  }
-
   auto &matrix = std::get<2>(GetInput());
 
-  return (rows * columns == matrix.size()) && (GetOutput() == 0);
+  return (rows > 0 && columns > 0) && (rows * columns == matrix.size()) && (GetOutput() == 0);
 }
 
 bool TabalaevAElemMatMinMPI::PreProcessingImpl() {
@@ -36,31 +31,42 @@ bool TabalaevAElemMatMinMPI::PreProcessingImpl() {
 }
 
 bool TabalaevAElemMatMinMPI::RunImpl() {
-  auto &input = GetInput();
-  auto &rows = std::get<0>(input);
-  auto &columns = std::get<1>(input);
-  auto &matrix = std::get<2>(input);
-
   int world_size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   int world_rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-  size_t part_size = rows / world_size;
-  size_t remainder = rows % world_size;
+  std::vector<int> matrix;
+  std::vector<int> sendcounts(world_size);
+  std::vector<int> displs(world_size);
+  std::vector<int> local_matrix;
 
-  size_t start = (world_rank * part_size) + std::min(static_cast<size_t>(world_rank), remainder);
-  size_t finish = start + part_size;
-  if (std::cmp_less(world_rank, remainder)) {
-    finish += 1;
+  if (world_rank == 0) {
+    auto &input = GetInput();
+    matrix = std::get<2>(input);
+
+    size_t matrix_size = matrix.size();
+    size_t part_size = matrix_size / world_size;
+    size_t remainder = matrix_size % world_size;
+
+    size_t offset = 0;
+    for (int i = 0; i < world_size; ++i) {
+      sendcounts[i] = part_size + (i < remainder ? 1 : 0);
+      displs[i] = offset;
+      offset += sendcounts[i];
+    }
   }
 
-  int local_minik = INT_MAX;
+  MPI_Bcast(sendcounts.data(), world_size, MPI_INT, 0, MPI_COMM_WORLD);
+  int local_size = sendcounts[world_rank];
+  local_matrix.resize(local_size);
 
-  for (size_t i = start; i < finish && i < rows; ++i) {
-    for (size_t j = 0; j < columns; ++j) {
-      local_minik = std::min(local_minik, matrix[(i * columns) + j]);
-    }
+  MPI_Scatterv(matrix.data(), sendcounts.data(), displs.data(), MPI_INT, local_matrix.data(), local_size, MPI_INT, 0,
+               MPI_COMM_WORLD);
+
+  int local_minik = INT_MAX;
+  for (int elem : local_matrix) {
+    local_minik = std::min(local_minik, elem);
   }
 
   int global_minik = 0;

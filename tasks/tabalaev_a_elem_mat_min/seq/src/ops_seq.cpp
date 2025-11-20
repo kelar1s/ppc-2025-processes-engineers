@@ -17,14 +17,9 @@ TabalaevAElemMatMinSEQ::TabalaevAElemMatMinSEQ(const InType &in) {
 bool TabalaevAElemMatMinSEQ::ValidationImpl() {
   auto &rows = std::get<0>(GetInput());
   auto &columns = std::get<1>(GetInput());
-
-  if (rows <= 0 || columns <= 0) {
-    return false;
-  }
-
   auto &matrix = std::get<2>(GetInput());
 
-  return (rows * columns == matrix.size()) && (GetOutput() == 0);
+  return (rows > 0 && columns > 0) && (rows * columns == matrix.size()) && (GetOutput() == 0);
 }
 
 bool TabalaevAElemMatMinSEQ::PreProcessingImpl() {
