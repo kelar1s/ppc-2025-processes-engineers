@@ -50,7 +50,7 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
     size_t remainder = matrix_size % world_size;
 
     size_t offset = 0;
-    for (size_t i = 0; i < world_size; ++i) {
+    for (size_t i = 0; i < static_cast<size_t>(world_size); ++i) {
       sendcounts[i] = part_size + (i < remainder ? 1 : 0);
       displs[i] = offset;
       offset += sendcounts[i];
