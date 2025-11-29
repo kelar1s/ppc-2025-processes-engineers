@@ -68,13 +68,12 @@ TEST_P(TabalaevAElemMatMinFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 5> kTestParam = {
-    std::make_tuple(3, 3, -15, "Small_matrix"),
-    std::make_tuple(5, 5, 32, "Medium_matrix"),
-    std::make_tuple(10, 10, -41, "Large_matrix"),
-    std::make_tuple(10, 5, 4, "Different_size_matrix_rows"),
-    std::make_tuple(6, 11, -1, "Different_size_matrix_columns"),
-};
+const std::array<TestType, 6> kTestParam = {std::make_tuple(3, 3, -15, "Small_matrix"),
+                                            std::make_tuple(5, 5, 32, "Medium_matrix"),
+                                            std::make_tuple(10, 10, -41, "Large_matrix"),
+                                            std::make_tuple(10, 5, 4, "Different_size_matrix_rows"),
+                                            std::make_tuple(6, 11, -1, "Different_size_matrix_columns"),
+                                            std::make_tuple(1, 1, -10, "Only_1_elem")};
 
 const auto kTestTasksList = std::tuple_cat(
     ppc::util::AddFuncTask<TabalaevAElemMatMinMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_elem_mat_min),

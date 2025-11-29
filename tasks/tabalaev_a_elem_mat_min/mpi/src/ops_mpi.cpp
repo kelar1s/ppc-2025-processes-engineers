@@ -19,14 +19,28 @@ TabalaevAElemMatMinMPI::TabalaevAElemMatMinMPI(const InType &in) {
 }
 
 bool TabalaevAElemMatMinMPI::ValidationImpl() {
-  auto &rows = std::get<0>(GetInput());
-  auto &columns = std::get<1>(GetInput());
-  auto &matrix = std::get<2>(GetInput());
+  int world_rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-  return (rows > 0 && columns > 0) && (rows * columns == matrix.size()) && (GetOutput() == 0);
+  int validation = 0;
+
+  if (world_rank == 0) {
+    auto &rows = std::get<0>(GetInput());
+    auto &columns = std::get<1>(GetInput());
+    auto &matrix = std::get<2>(GetInput());
+
+    if ((rows != 0 && columns != 0) && (!matrix.empty()) && (matrix.size() == rows * columns)) {
+      validation = 1;
+    }
+  }
+
+  MPI_Bcast(&validation, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  return validation != 0;
 }
 
 bool TabalaevAElemMatMinMPI::PreProcessingImpl() {
+  GetOutput() = 0;
   return true;
 }
 
@@ -61,8 +75,8 @@ bool TabalaevAElemMatMinMPI::RunImpl() {
   int local_size = sendcounts[world_rank];
   local_matrix.resize(local_size);
 
-  MPI_Scatterv(matrix.data(), sendcounts.data(), displs.data(), MPI_INT, local_matrix.data(), local_size, MPI_INT, 0,
-               MPI_COMM_WORLD);
+  MPI_Scatterv(world_rank == 0 ? matrix.data() : nullptr, sendcounts.data(), displs.data(), MPI_INT,
+               local_matrix.data(), local_size, MPI_INT, 0, MPI_COMM_WORLD);
 
   int local_minik = INT_MAX;
   for (int elem : local_matrix) {

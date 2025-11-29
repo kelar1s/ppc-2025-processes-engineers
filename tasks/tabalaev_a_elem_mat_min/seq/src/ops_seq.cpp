@@ -19,15 +19,20 @@ bool TabalaevAElemMatMinSEQ::ValidationImpl() {
   auto &columns = std::get<1>(GetInput());
   auto &matrix = std::get<2>(GetInput());
 
-  return (rows > 0 && columns > 0) && (rows * columns == matrix.size()) && (GetOutput() == 0);
+  return (rows != 0 && columns != 0) && (rows * columns == matrix.size()) && (GetOutput() == 0);
 }
 
 bool TabalaevAElemMatMinSEQ::PreProcessingImpl() {
+  GetOutput() = 0;
   return true;
 }
 
 bool TabalaevAElemMatMinSEQ::RunImpl() {
   auto &matrix = std::get<2>(GetInput());
+
+  if (matrix.empty()) {
+    return false;
+  }
 
   int minik = matrix[0];
   for (size_t i = 1; i < matrix.size(); i++) {
