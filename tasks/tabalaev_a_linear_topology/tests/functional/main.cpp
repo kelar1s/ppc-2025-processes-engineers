@@ -20,36 +20,32 @@ namespace tabalaev_a_linear_topology {
 class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
   static std::string PrintTestParam(const TestType &test_param) {
-    int minik = std::get<2>(test_param);
-    std::string str_minik = (minik < 0) ? "minus" + std::to_string(-minik) : std::to_string(minik);
-    return std::to_string(std::get<0>(test_param)) + "x" + std::to_string(std::get<1>(test_param)) + "_min_" +
-           str_minik + "_" + std::get<3>(test_param);
+    return "Sender_" + std::to_string(std::get<0>(test_param)) + "_Receiver_" +
+           std::to_string(std::get<1>(test_param)) + "_DataSize_" + std::to_string(std::get<2>(test_param));
   }
 
  protected:
   void SetUp() override {
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
 
-    int rows = std::get<0>(params);
-    int columns = std::get<1>(params);
-    int minik = std::get<2>(params);
+    int sender = std::get<0>(params);
+    int receiver = std::get<1>(params);
+    int size = std::get<2>(params);
 
-    std::vector<int> matrix(static_cast<size_t>(rows) * static_cast<size_t>(columns));
+    std::vector<int> data(size);
 
-    std::uniform_int_distribution<int> dist(minik, 250);
+    std::uniform_int_distribution<int> dist(0, 250);
 
-    for (int &elem : matrix) {
+    for (int &elem : data) {
       elem = dist(gen_);
     }
 
-    matrix[(rows * columns) / 2] = minik;
-
-    input_data_ = std::make_tuple(static_cast<size_t>(rows), static_cast<size_t>(columns), matrix);
-    expected_minik_ = minik;
+    input_data_ = std::make_tuple(sender, receiver, data);
+    expected_output_ = data;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return (expected_minik_ == output_data);
+    return (expected_output_ == output_data);
   }
 
   InType GetTestInputData() final {
@@ -58,7 +54,7 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
 
  private:
   InType input_data_;
-  OutType expected_minik_ = 0;
+  OutType expected_output_ = {};
   std::mt19937 gen_{std::random_device{}()};
 };
 
@@ -68,12 +64,10 @@ TEST_P(TabalaevALinearTopologyFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 6> kTestParam = {std::make_tuple(3, 3, -15, "Small_matrix"),
-                                            std::make_tuple(5, 5, 32, "Medium_matrix"),
-                                            std::make_tuple(10, 10, -41, "Large_matrix"),
-                                            std::make_tuple(10, 5, 4, "Different_size_matrix_rows"),
-                                            std::make_tuple(6, 11, -1, "Different_size_matrix_columns"),
-                                            std::make_tuple(1, 1, -10, "Only_1_elem")};
+const std::array<TestType, 2> kTestParam = {
+    std::make_tuple(0, 4, 50, "From 0 to 4"),
+    std::make_tuple(4, 0, 50, "From 4 to 0"),
+};
 
 const auto kTestTasksList = std::tuple_cat(
     ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_linear_topology),

@@ -13,21 +13,19 @@ namespace tabalaev_a_linear_topology {
 
 class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
   void SetUp() override {
-    size_t rows = 5000;
-    size_t columns = 5000;
-    std::vector<int> matrix(rows * columns);
-    for (size_t i = 0; i < rows; i++) {
-      for (size_t j = 0; j < columns; j++) {
-        int index = static_cast<int>((i * columns) + j);
-        matrix[index] = static_cast<int>((i * i) + j);
-      }
+    size_t size = 100;
+    std::vector<int> data(size);
+    for (size_t i = 0; i < size; i++) {
+      data[i] = (i * i) + 2;
     }
-    matrix[(rows * columns) / 2] = expected_minik_;
-    input_data_ = std::make_tuple(rows, columns, matrix);
+    int sender = 0;
+    int receiver = 4;
+    input_data_ = std::make_tuple(sender, receiver, data);
+    output_data_ = data;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return output_data == expected_minik_;
+    return output_data == output_data_;
   }
 
   InType GetTestInputData() final {
@@ -36,7 +34,7 @@ class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InTy
 
  private:
   InType input_data_;
-  int expected_minik_ = -1000000;
+  std::vector<int> output_data_ = {};
 };
 
 TEST_P(TabalaevALinearTopologyPerfTests, RunPerfModes) {

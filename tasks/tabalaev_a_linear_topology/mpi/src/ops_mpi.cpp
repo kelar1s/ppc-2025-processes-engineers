@@ -15,22 +15,25 @@ namespace tabalaev_a_linear_topology {
 TabalaevALinearTopologyMPI::TabalaevALinearTopologyMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = 0;
+  GetOutput() = {};
 }
 
 bool TabalaevALinearTopologyMPI::ValidationImpl() {
   int world_rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-  int validation = 0;
+  int validation = 1;
 
   if (world_rank == 0) {
-    auto &rows = std::get<0>(GetInput());
-    auto &columns = std::get<1>(GetInput());
-    auto &matrix = std::get<2>(GetInput());
+    int world_size = 0;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-    if ((rows != 0 && columns != 0) && (!matrix.empty()) && (matrix.size() == rows * columns)) {
-      validation = 1;
+    auto &sender = std::get<0>(GetInput());
+    auto &receiver = std::get<1>(GetInput());
+    auto &data = std::get<2>(GetInput());
+
+    if ((sender < 0 || sender >= world_size) || (receiver < 0 || receiver >= world_size) || data.empty()) {
+      validation = 0;
     }
   }
 
@@ -40,7 +43,7 @@ bool TabalaevALinearTopologyMPI::ValidationImpl() {
 }
 
 bool TabalaevALinearTopologyMPI::PreProcessingImpl() {
-  GetOutput() = 0;
+  GetOutput() = {};
   return true;
 }
 
@@ -50,43 +53,86 @@ bool TabalaevALinearTopologyMPI::RunImpl() {
   int world_rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-  std::vector<int> matrix;
-  std::vector<int> sendcounts(world_size);
-  std::vector<int> displs(world_size);
-  std::vector<int> local_matrix;
+  auto sender = std::get<0>(GetInput());
+  auto receiver = std::get<1>(GetInput());
 
-  if (world_rank == 0) {
-    auto &input = GetInput();
-    matrix = std::get<2>(input);
+  if (sender == receiver) {
+    GetOutput() = std::get<2>(GetInput());
+    return true;
+  }
 
-    size_t matrix_size = matrix.size();
-    size_t part_size = matrix_size / world_size;
-    size_t remainder = matrix_size % world_size;
+  std::vector<int> data;
+  if (world_rank == sender) {
+    data = std::get<2>(GetInput());
+  }
 
-    int offset = 0;
-    for (size_t i = 0; std::cmp_less(i, world_size); ++i) {
-      sendcounts[i] = static_cast<int>(part_size) + (i < remainder ? 1 : 0);
-      displs[i] = offset;
-      offset += sendcounts[i];
+  int left = (world_rank == 0 ? MPI_PROC_NULL : world_rank - 1);
+  int right = (world_rank == world_size - 1 ? MPI_PROC_NULL : world_rank + 1);
+
+  int direction = (sender < receiver ? 1 : -1);
+
+  std::vector<int> local_buff;
+
+  if (world_rank == sender) {
+    int to = (direction == 1 ? right : left);
+
+    int size = static_cast<int>(data.size());
+
+    MPI_Send(&size, 1, MPI_INT, to, 0, MPI_COMM_WORLD);
+    MPI_Send(data.data(), size, MPI_INT, to, 1, MPI_COMM_WORLD);
+  }
+
+  if (world_rank != sender && world_rank != receiver) {
+    bool onPath = false;
+
+    if (direction == 1) {
+      if (world_rank > sender && world_rank < receiver) {
+        onPath = true;
+      }
+    } else {
+      if (world_rank < sender && world_rank > receiver) {
+        onPath = true;
+      }
+    }
+
+    if (onPath) {
+      int from = (direction == 1 ? left : right);
+      int to = (direction == 1 ? right : left);
+
+      int size = 0;
+      MPI_Recv(&size, 1, MPI_INT, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+      local_buff.resize(size);
+      MPI_Recv(local_buff.data(), size, MPI_INT, from, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+      MPI_Send(&size, 1, MPI_INT, to, 0, MPI_COMM_WORLD);
+      MPI_Send(local_buff.data(), size, MPI_INT, to, 1, MPI_COMM_WORLD);
     }
   }
 
-  MPI_Bcast(sendcounts.data(), world_size, MPI_INT, 0, MPI_COMM_WORLD);
-  int local_size = sendcounts[world_rank];
-  local_matrix.resize(local_size);
+  if (world_rank == receiver) {
+    int from = (direction == 1 ? left : right);
 
-  MPI_Scatterv(world_rank == 0 ? matrix.data() : nullptr, sendcounts.data(), displs.data(), MPI_INT,
-               local_matrix.data(), local_size, MPI_INT, 0, MPI_COMM_WORLD);
+    int size = 0;
+    MPI_Recv(&size, 1, MPI_INT, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-  int local_minik = INT_MAX;
-  for (int elem : local_matrix) {
-    local_minik = std::min(local_minik, elem);
+    local_buff.resize(size);
+    MPI_Recv(local_buff.data(), size, MPI_INT, from, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    GetOutput() = local_buff;
   }
 
-  int global_minik = 0;
-  MPI_Allreduce(&local_minik, &global_minik, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+  // MPI_Bcast(GetOutput().data(), GetOutput().size(), MPI_INT, receiver, MPI_COMM_WORLD);
 
-  GetOutput() = global_minik;
+  int data_size = (world_rank == receiver) ? local_buff.size() : 0;
+  MPI_Bcast(&data_size, 1, MPI_INT, receiver, MPI_COMM_WORLD);
+
+  if (world_rank != receiver) {
+    local_buff.resize(data_size);
+  }
+  MPI_Bcast(local_buff.data(), data_size, MPI_INT, receiver, MPI_COMM_WORLD);
+
+  GetOutput() = local_buff;
 
   return true;
 }

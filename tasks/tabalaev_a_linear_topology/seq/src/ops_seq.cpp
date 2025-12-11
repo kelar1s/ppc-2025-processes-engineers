@@ -11,35 +11,27 @@ namespace tabalaev_a_linear_topology {
 TabalaevALinearTopologySEQ::TabalaevALinearTopologySEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
-  GetOutput() = 0;
+  GetOutput() = {};
 }
 
 bool TabalaevALinearTopologySEQ::ValidationImpl() {
-  auto &rows = std::get<0>(GetInput());
-  auto &columns = std::get<1>(GetInput());
-  auto &matrix = std::get<2>(GetInput());
-
-  return (rows != 0 && columns != 0) && (rows * columns == matrix.size()) && (GetOutput() == 0);
+  auto &sender = std::get<0>(GetInput());
+  auto &receiver = std::get<1>(GetInput());
+  auto &data = std::get<2>(GetInput());
+  if (sender < 0 || receiver < 0) {
+    return false;
+  }
+  return !data.empty();
 }
 
 bool TabalaevALinearTopologySEQ::PreProcessingImpl() {
-  GetOutput() = 0;
+  GetOutput() = {};
   return true;
 }
 
 bool TabalaevALinearTopologySEQ::RunImpl() {
-  auto &matrix = std::get<2>(GetInput());
-
-  if (matrix.empty()) {
-    return false;
-  }
-
-  int minik = matrix[0];
-  for (size_t i = 1; i < matrix.size(); i++) {
-    minik = std::min(minik, matrix[i]);
-  }
-
-  GetOutput() = minik;
+  auto &data = std::get<2>(GetInput());
+  GetOutput() = data;
   return true;
 }
 
