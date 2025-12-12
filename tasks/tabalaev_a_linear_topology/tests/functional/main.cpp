@@ -55,7 +55,7 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
  private:
   InType input_data_;
   OutType expected_output_ = {};
-  std::mt19937 gen_{std::random_device{}()};
+  std::mt19937 gen_{12345};
 };
 
 namespace {
@@ -64,7 +64,8 @@ TEST_P(TabalaevALinearTopologyFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 2> kTestParam = {
+const std::array<TestType, 3> kTestParam = {
+    std::make_tuple(3, 3, 50, "From 3 to 3"),
     std::make_tuple(0, 4, 50, "From 0 to 4"),
     std::make_tuple(4, 0, 50, "From 4 to 0"),
 };

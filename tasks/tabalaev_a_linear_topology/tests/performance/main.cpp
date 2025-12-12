@@ -13,7 +13,7 @@ namespace tabalaev_a_linear_topology {
 
 class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
   void SetUp() override {
-    size_t size = 100;
+    size_t size = 1000;
     std::vector<int> data(size);
     for (size_t i = 0; i < size; i++) {
       data[i] = (i * i) + 2;
