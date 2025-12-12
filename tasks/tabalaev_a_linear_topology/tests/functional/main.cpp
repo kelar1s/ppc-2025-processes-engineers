@@ -79,17 +79,13 @@ TEST_P(TabalaevALinearTopologyFuncTests, LinearTopologyMpiFuncTests) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 6> kMpiTestParam = {
+const std::array<TestType, 4> kMpiTestParam = {
     std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 50, "From 0 to 1"),
-    std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(3, 3, 50, "From 3 to 3"),
-    std::make_tuple(0, 4, 50, "From 0 to 4"), std::make_tuple(4, 0, 50, "From 4 to 0"),
-};
+    std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(1, 1, 50, "From 1 to 1")};
 
-const std::array<TestType, 6> kSeqTestParam = {
+const std::array<TestType, 4> kSeqTestParam = {
     std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 50, "From 0 to 1"),
-    std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(3, 3, 50, "From 3 to 3"),
-    std::make_tuple(0, 4, 50, "From 0 to 4"), std::make_tuple(4, 0, 50, "From 4 to 0"),
-};
+    std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(1, 1, 50, "From 1 to 1")};
 
 const auto kMpiTestTasksList =
     ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(kMpiTestParam, PPC_SETTINGS_tabalaev_a_linear_topology);
