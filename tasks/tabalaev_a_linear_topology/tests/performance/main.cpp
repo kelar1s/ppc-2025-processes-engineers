@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <tuple>
 #include <vector>
@@ -13,13 +15,27 @@ namespace tabalaev_a_linear_topology {
 
 class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
   void SetUp() override {
+    int sender = 0;
+    int receiver = 1;
+
+    int mpi_initialized = 0;
+    MPI_Initialized(&mpi_initialized);
+
+    if (mpi_initialized) {
+      int world_size = 0;
+      MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+      if (world_size < (std::max(sender, receiver) + 1)) {
+        GTEST_SKIP() << "Skipping test: not enough processes";
+      }
+    }
+
     size_t size = 1000;
     std::vector<int> data(size);
     for (size_t i = 0; i < size; i++) {
       data[i] = (i * i) + 2;
     }
-    int sender = 0;
-    int receiver = 4;
+
     input_data_ = std::make_tuple(sender, receiver, data);
     output_data_ = data;
   }

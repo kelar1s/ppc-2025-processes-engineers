@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdlib>
@@ -30,6 +32,19 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
 
     int sender = std::get<0>(params);
     int receiver = std::get<1>(params);
+
+    int mpi_initialized = 0;
+    MPI_Initialized(&mpi_initialized);
+
+    if (mpi_initialized) {
+      int world_size = 0;
+      MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+      if (world_size < (std::max(sender, receiver) + 1)) {
+        GTEST_SKIP() << "Skipping test: not enough processes";
+      }
+    }
+
     int size = std::get<2>(params);
 
     std::vector<int> data(size);
@@ -41,7 +56,7 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
     }
 
     input_data_ = std::make_tuple(sender, receiver, data);
-    expected_output_ = data;
+    expected_output_ = std::vector<int>(data);
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
@@ -64,10 +79,10 @@ TEST_P(TabalaevALinearTopologyFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {
-    std::make_tuple(3, 3, 50, "From 3 to 3"),
-    std::make_tuple(0, 4, 50, "From 0 to 4"),
-    std::make_tuple(4, 0, 50, "From 4 to 0"),
+const std::array<TestType, 6> kTestParam = {
+    std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 50, "From 0 to 1"),
+    std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(3, 3, 50, "From 3 to 3"),
+    std::make_tuple(0, 4, 50, "From 0 to 4"), std::make_tuple(4, 0, 50, "From 4 to 0"),
 };
 
 const auto kTestTasksList = std::tuple_cat(
