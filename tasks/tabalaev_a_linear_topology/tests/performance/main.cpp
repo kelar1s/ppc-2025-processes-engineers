@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "tabalaev_a_linear_topology/common/include/common.hpp"
@@ -32,7 +33,7 @@ class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InTy
 
     size_t size = 1000;
     std::vector<int> data(size);
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; std::cmp_less(i, size); i++) {
       data[i] = (i * i) + 2;
     }
 
