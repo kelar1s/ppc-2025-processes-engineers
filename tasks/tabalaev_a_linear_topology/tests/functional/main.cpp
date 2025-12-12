@@ -75,25 +75,36 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
 
 namespace {
 
-TEST_P(TabalaevALinearTopologyFuncTests, MatmulFromPic) {
+TEST_P(TabalaevALinearTopologyFuncTests, LinearTopologyMpiFuncTests) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 6> kTestParam = {
+const std::array<TestType, 6> kMpiTestParam = {
     std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 50, "From 0 to 1"),
     std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(3, 3, 50, "From 3 to 3"),
     std::make_tuple(0, 4, 50, "From 0 to 4"), std::make_tuple(4, 0, 50, "From 4 to 0"),
 };
 
-const auto kTestTasksList = std::tuple_cat(
-    ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_linear_topology),
-    ppc::util::AddFuncTask<TabalaevALinearTopologySEQ, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_linear_topology));
+const std::array<TestType, 6> kSeqTestParam = {
+    std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 50, "From 0 to 1"),
+    std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(3, 3, 50, "From 3 to 3"),
+    std::make_tuple(0, 4, 50, "From 0 to 4"), std::make_tuple(4, 0, 50, "From 4 to 0"),
+};
 
-const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
+const auto kMpiTestTasksList =
+    ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(kMpiTestParam, PPC_SETTINGS_tabalaev_a_linear_topology);
+
+const auto kSeqTestTasksList =
+    ppc::util::AddFuncTask<TabalaevALinearTopologySEQ, InType>(kSeqTestParam, PPC_SETTINGS_tabalaev_a_linear_topology);
+
+const auto kMpiGtestValues = ppc::util::ExpandToValues(kMpiTestTasksList);
+const auto kSeqGtestValues = ppc::util::ExpandToValues(kSeqTestTasksList);
 
 const auto kPerfTestName = TabalaevALinearTopologyFuncTests::PrintFuncTestName<TabalaevALinearTopologyFuncTests>;
 
-INSTANTIATE_TEST_SUITE_P(PicMatrixTests, TabalaevALinearTopologyFuncTests, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(LinearTopologyMpiTests, TabalaevALinearTopologyFuncTests, kMpiGtestValues, kPerfTestName);
+
+INSTANTIATE_TEST_SUITE_P(LinearTopologySeqTests, TabalaevALinearTopologyFuncTests, kSeqGtestValues, kPerfTestName);
 
 }  // namespace
 
