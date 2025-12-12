@@ -31,7 +31,7 @@ class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InTy
       }
     }
 
-    size_t size = 1000;
+    size_t size = 50000000;
     std::vector<int> data(size);
     for (int i = 0; std::cmp_less(i, size); i++) {
       data[i] = (i * i) + 2;
