@@ -36,7 +36,7 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
     int mpi_initialized = 0;
     MPI_Initialized(&mpi_initialized);
 
-    if (mpi_initialized) {
+    if (mpi_initialized != 0) {
       int world_size = 0;
       MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
@@ -69,7 +69,7 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
 
  private:
   InType input_data_;
-  OutType expected_output_ = {};
+  OutType expected_output_;
   std::mt19937 gen_{12345};
 };
 

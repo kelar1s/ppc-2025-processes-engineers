@@ -2,10 +2,7 @@
 
 #include <mpi.h>
 
-#include <algorithm>
 #include <climits>
-#include <cstddef>
-#include <utility>
 #include <vector>
 
 #include "tabalaev_a_linear_topology/common/include/common.hpp"
@@ -84,19 +81,19 @@ bool TabalaevALinearTopologyMPI::RunImpl() {
   }
 
   if (world_rank != sender && world_rank != receiver) {
-    bool onPath = false;
+    bool on_path = false;
 
     if (direction == 1) {
       if (world_rank > sender && world_rank < receiver) {
-        onPath = true;
+        on_path = true;
       }
     } else {
       if (world_rank < sender && world_rank > receiver) {
-        onPath = true;
+        on_path = true;
       }
     }
 
-    if (onPath) {
+    if (on_path) {
       int from = (direction == 1 ? left : right);
       int to = (direction == 1 ? right : left);
 
@@ -121,7 +118,7 @@ bool TabalaevALinearTopologyMPI::RunImpl() {
     MPI_Recv(local_buff.data(), size, MPI_INT, from, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
-  int data_size = (world_rank == receiver) ? local_buff.size() : 0;
+  int data_size = (world_rank == receiver) ? static_cast<int>(local_buff.size()) : 0;
   MPI_Bcast(&data_size, 1, MPI_INT, receiver, MPI_COMM_WORLD);
 
   if (world_rank != receiver) {

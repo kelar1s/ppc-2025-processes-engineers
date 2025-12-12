@@ -21,7 +21,7 @@ class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InTy
     int mpi_initialized = 0;
     MPI_Initialized(&mpi_initialized);
 
-    if (mpi_initialized) {
+    if (mpi_initialized != 0) {
       int world_size = 0;
       MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
@@ -32,7 +32,7 @@ class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InTy
 
     size_t size = 1000;
     std::vector<int> data(size);
-    for (size_t i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
       data[i] = (i * i) + 2;
     }
 
@@ -50,7 +50,7 @@ class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InTy
 
  private:
   InType input_data_;
-  std::vector<int> output_data_ = {};
+  std::vector<int> output_data_;
 };
 
 TEST_P(TabalaevALinearTopologyPerfTests, RunPerfModes) {
