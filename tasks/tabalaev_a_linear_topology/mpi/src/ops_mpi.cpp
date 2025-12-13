@@ -52,70 +52,24 @@ bool TabalaevALinearTopologyMPI::RunImpl() {
 
   auto sender = std::get<0>(GetInput());
   auto receiver = std::get<1>(GetInput());
-  std::vector<int> data;
 
   if (sender == receiver) {
     GetOutput() = std::get<2>(GetInput());
     return true;
   }
 
-  int left = (world_rank == 0 ? MPI_PROC_NULL : world_rank - 1);
-  int right = (world_rank == world_size - 1 ? MPI_PROC_NULL : world_rank + 1);
-
-  int direction = (sender < receiver ? 1 : -1);
+  int left = GetLeft(world_rank);
+  int right = GetRight(world_rank, world_size);
+  int direction = GetDirection(sender, receiver);
 
   std::vector<int> local_buff;
 
   if (world_rank == sender) {
-    data = std::get<2>(GetInput());
-
-    int to = (direction == 1 ? right : left);
-
-    int size = static_cast<int>(data.size());
-
-    local_buff.resize(size);
-    local_buff = data;
-
-    MPI_Send(&size, 1, MPI_INT, to, 0, MPI_COMM_WORLD);
-    MPI_Send(local_buff.data(), size, MPI_INT, to, 1, MPI_COMM_WORLD);
-  }
-
-  if (world_rank != sender && world_rank != receiver) {
-    bool on_path = false;
-
-    if (direction == 1) {
-      if (world_rank > sender && world_rank < receiver) {
-        on_path = true;
-      }
-    } else {
-      if (world_rank < sender && world_rank > receiver) {
-        on_path = true;
-      }
-    }
-
-    if (on_path) {
-      int from = (direction == 1 ? left : right);
-      int to = (direction == 1 ? right : left);
-
-      int size = 0;
-      MPI_Recv(&size, 1, MPI_INT, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-      local_buff.resize(size);
-      MPI_Recv(local_buff.data(), size, MPI_INT, from, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-      MPI_Send(&size, 1, MPI_INT, to, 0, MPI_COMM_WORLD);
-      MPI_Send(local_buff.data(), size, MPI_INT, to, 1, MPI_COMM_WORLD);
-    }
-  }
-
-  if (world_rank == receiver) {
-    int from = (direction == 1 ? left : right);
-
-    int size = 0;
-    MPI_Recv(&size, 1, MPI_INT, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-    local_buff.resize(size);
-    MPI_Recv(local_buff.data(), size, MPI_INT, from, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    ProcessSender(direction, left, right, local_buff);
+  } else if (world_rank == receiver) {
+    ProcessReceiver(direction, left, right, local_buff);
+  } else if (IsOnPath(world_rank, sender, receiver, direction)) {
+    ProcessIntermediate(direction, left, right, local_buff);
   }
 
   int data_size = (world_rank == receiver) ? static_cast<int>(local_buff.size()) : 0;
@@ -133,6 +87,62 @@ bool TabalaevALinearTopologyMPI::RunImpl() {
 
 bool TabalaevALinearTopologyMPI::PostProcessingImpl() {
   return true;
+}
+
+int TabalaevALinearTopologyMPI::GetLeft(int rank) const {
+  return rank == 0 ? MPI_PROC_NULL : rank - 1;
+}
+
+int TabalaevALinearTopologyMPI::GetRight(int rank, int size) const {
+  return rank == (size - 1) ? MPI_PROC_NULL : rank + 1;
+}
+
+int TabalaevALinearTopologyMPI::GetDirection(int sender, int receiver) const {
+  return sender < receiver ? 1 : -1;
+}
+
+bool TabalaevALinearTopologyMPI::IsOnPath(int rank, int sender, int receiver, int direction) const {
+  if (direction == 1) {
+    return rank > sender && rank < receiver;
+  }
+  return rank < sender && rank > receiver;
+}
+
+void TabalaevALinearTopologyMPI::ProcessSender(int direction, int left, int right, std::vector<int> &local_buff) {
+  auto data = std::get<2>(GetInput());
+
+  int size = static_cast<int>(data.size());
+  int to = (direction == 1 ? right : left);
+
+  local_buff.resize(size);
+  local_buff = data;
+
+  MPI_Send(&size, 1, MPI_INT, to, 0, MPI_COMM_WORLD);
+  MPI_Send(local_buff.data(), size, MPI_INT, to, 1, MPI_COMM_WORLD);
+}
+
+void TabalaevALinearTopologyMPI::ProcessIntermediate(int direction, int left, int right, std::vector<int> &local_buff) {
+  int from = (direction == 1 ? left : right);
+  int to = (direction == 1 ? right : left);
+
+  int size = 0;
+  MPI_Recv(&size, 1, MPI_INT, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  local_buff.resize(size);
+  MPI_Recv(local_buff.data(), size, MPI_INT, from, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  MPI_Send(&size, 1, MPI_INT, to, 0, MPI_COMM_WORLD);
+  MPI_Send(local_buff.data(), size, MPI_INT, to, 1, MPI_COMM_WORLD);
+}
+
+void TabalaevALinearTopologyMPI::ProcessReceiver(int direction, int left, int right, std::vector<int> &local_buff) {
+  int from = (direction == 1 ? left : right);
+
+  int size = 0;
+  MPI_Recv(&size, 1, MPI_INT, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  local_buff.resize(size);
+  MPI_Recv(local_buff.data(), size, MPI_INT, from, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 }
 
 }  // namespace tabalaev_a_linear_topology

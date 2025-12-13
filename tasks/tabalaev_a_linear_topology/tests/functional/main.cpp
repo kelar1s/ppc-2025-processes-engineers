@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>
-#include <random>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -49,10 +48,8 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
 
     std::vector<int> data(size);
 
-    std::uniform_int_distribution<int> dist(0, 250);
-
-    for (int &elem : data) {
-      elem = dist(gen_);
+    for (int i = 0; i < size; i++) {
+      data[i] = (i * i) + 3;
     }
 
     input_data_ = std::make_tuple(sender, receiver, data);
@@ -70,7 +67,6 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
  private:
   InType input_data_;
   OutType expected_output_;
-  std::mt19937 gen_{12345};
 };
 
 namespace {
@@ -80,12 +76,12 @@ TEST_P(TabalaevALinearTopologyFuncTests, LinearTopologyMpiFuncTests) {
 }
 
 const std::array<TestType, 4> kMpiTestParam = {
-    std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 50, "From 0 to 1"),
-    std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(1, 1, 50, "From 1 to 1")};
+    std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 100, "From 0 to 1"),
+    std::make_tuple(1, 0, 150, "From 1 to 0"), std::make_tuple(1, 1, 200, "From 1 to 1")};
 
 const std::array<TestType, 4> kSeqTestParam = {
-    std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 50, "From 0 to 1"),
-    std::make_tuple(1, 0, 50, "From 1 to 0"), std::make_tuple(1, 1, 50, "From 1 to 1")};
+    std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 100, "From 0 to 1"),
+    std::make_tuple(1, 0, 150, "From 1 to 0"), std::make_tuple(1, 1, 200, "From 1 to 1")};
 
 const auto kMpiTestTasksList =
     ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(kMpiTestParam, PPC_SETTINGS_tabalaev_a_linear_topology);

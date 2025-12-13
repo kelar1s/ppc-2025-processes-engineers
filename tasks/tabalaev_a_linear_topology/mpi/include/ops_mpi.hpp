@@ -17,6 +17,14 @@ class TabalaevALinearTopologyMPI : public BaseTask {
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
+
+  int GetLeft(int rank) const;
+  int GetRight(int rank, int size) const;
+  int GetDirection(int sender, int receiver) const;
+  bool IsOnPath(int rank, int sender, int receiver, int direction) const;
+  void ProcessSender(int direction, int left, int right, std::vector<int> &local_buff);
+  void ProcessIntermediate(int direction, int left, int right, std::vector<int> &local_buff);
+  void ProcessReceiver(int direction, int left, int right, std::vector<int> &local_buff);
 };
 
 }  // namespace tabalaev_a_linear_topology
