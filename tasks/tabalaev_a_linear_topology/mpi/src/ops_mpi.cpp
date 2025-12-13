@@ -114,8 +114,7 @@ void TabalaevALinearTopologyMPI::ProcessSender(int direction, int left, int righ
   int size = static_cast<int>(data.size());
   int to = (direction == 1 ? right : left);
 
-  local_buff.resize(size);
-  local_buff = data;
+  local_buff = std::vector<int>(data);
 
   MPI_Send(&size, 1, MPI_INT, to, 0, MPI_COMM_WORLD);
   MPI_Send(local_buff.data(), size, MPI_INT, to, 1, MPI_COMM_WORLD);
