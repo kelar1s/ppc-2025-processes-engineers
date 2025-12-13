@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "tabalaev_a_linear_topology/common/include/common.hpp"
 #include "task/include/task.hpp"
 
@@ -18,10 +20,10 @@ class TabalaevALinearTopologyMPI : public BaseTask {
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 
-  int GetLeft(int rank) const;
-  int GetRight(int rank, int size) const;
-  int GetDirection(int sender, int receiver) const;
-  bool IsOnPath(int rank, int sender, int receiver, int direction) const;
+  [[nodiscard]] int GetLeft(int rank);
+  [[nodiscard]] int GetRight(int rank, int size);
+  [[nodiscard]] int GetDirection(int sender, int receiver);
+  [[nodiscard]] bool IsOnPath(int rank, int sender, int receiver, int direction);
   void ProcessSender(int direction, int left, int right, std::vector<int> &local_buff);
   void ProcessIntermediate(int direction, int left, int right, std::vector<int> &local_buff);
   void ProcessReceiver(int direction, int left, int right, std::vector<int> &local_buff);

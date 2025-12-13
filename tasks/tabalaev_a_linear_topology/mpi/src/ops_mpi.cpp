@@ -89,19 +89,19 @@ bool TabalaevALinearTopologyMPI::PostProcessingImpl() {
   return true;
 }
 
-int TabalaevALinearTopologyMPI::GetLeft(int rank) const {
+int TabalaevALinearTopologyMPI::GetLeft(int rank) {
   return rank == 0 ? MPI_PROC_NULL : rank - 1;
 }
 
-int TabalaevALinearTopologyMPI::GetRight(int rank, int size) const {
+int TabalaevALinearTopologyMPI::GetRight(int rank, int size) {
   return rank == (size - 1) ? MPI_PROC_NULL : rank + 1;
 }
 
-int TabalaevALinearTopologyMPI::GetDirection(int sender, int receiver) const {
+int TabalaevALinearTopologyMPI::GetDirection(int sender, int receiver) {
   return sender < receiver ? 1 : -1;
 }
 
-bool TabalaevALinearTopologyMPI::IsOnPath(int rank, int sender, int receiver, int direction) const {
+bool TabalaevALinearTopologyMPI::IsOnPath(int rank, int sender, int receiver, int direction) {
   if (direction == 1) {
     return rank > sender && rank < receiver;
   }
