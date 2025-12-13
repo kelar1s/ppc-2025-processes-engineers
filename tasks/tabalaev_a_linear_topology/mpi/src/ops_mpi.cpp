@@ -109,12 +109,10 @@ bool TabalaevALinearTopologyMPI::IsOnPath(int rank, int sender, int receiver, in
 }
 
 void TabalaevALinearTopologyMPI::ProcessSender(int direction, int left, int right, std::vector<int> &local_buff) {
-  auto data = std::get<2>(GetInput());
+  local_buff = std::get<2>(GetInput());
 
-  int size = static_cast<int>(data.size());
+  int size = static_cast<int>(local_buff.size());
   int to = (direction == 1 ? right : left);
-
-  local_buff = std::vector<int>(data);
 
   MPI_Send(&size, 1, MPI_INT, to, 0, MPI_COMM_WORLD);
   MPI_Send(local_buff.data(), size, MPI_INT, to, 1, MPI_COMM_WORLD);
