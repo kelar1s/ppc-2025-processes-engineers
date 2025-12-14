@@ -16,10 +16,7 @@ bool TabalaevALinearTopologySEQ::ValidationImpl() {
   auto &sender = std::get<0>(GetInput());
   auto &receiver = std::get<1>(GetInput());
   auto &data = std::get<2>(GetInput());
-  if (sender < 0 || receiver < 0) {
-    return false;
-  }
-  return !data.empty();
+  return sender >= 0 && receiver >= 0 && !data.empty();
 }
 
 bool TabalaevALinearTopologySEQ::PreProcessingImpl() {
