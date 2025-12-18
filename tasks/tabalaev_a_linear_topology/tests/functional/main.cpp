@@ -31,19 +31,6 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
 
     int sender = std::get<0>(params);
     int receiver = std::get<1>(params);
-
-    int mpi_initialized = 0;
-    MPI_Initialized(&mpi_initialized);
-
-    if (mpi_initialized != 0) {
-      int world_size = 0;
-      MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-      if (world_size < (std::max(sender, receiver) + 1)) {
-        GTEST_SKIP() << "Skipping test: not enough processes";
-      }
-    }
-
     int size = std::get<2>(params);
 
     std::vector<int> data(size);
@@ -69,34 +56,124 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
   OutType expected_output_;
 };
 
-namespace {
+class TabalaevALinearTopologyMpi2ProcTests : public TabalaevALinearTopologyFuncTests {
+  void SetUp() override {
+    if (!ppc::util::IsUnderMpirun()) {
+      std::cerr << "Is not under mpi run" << std::endl;
+      GTEST_SKIP();
+    } else {
+      TabalaevALinearTopologyFuncTests::SetUp();
+    }
+  }
+};
 
-TEST_P(TabalaevALinearTopologyFuncTests, LinearTopologyMpiFuncTests) {
+class TabalaevALinearTopologyMpi4ProcTests : public TabalaevALinearTopologyFuncTests {
+  void SetUp() override {
+    if (!ppc::util::IsUnderMpirun()) {
+      std::cerr << "Is not under mpi run" << std::endl;
+      GTEST_SKIP();
+    } else {
+      TabalaevALinearTopologyFuncTests::SetUp();
+    }
+  }
+};
+
+class TabalaevALinearTopologyMpi6ProcTests : public TabalaevALinearTopologyFuncTests {
+  void SetUp() override {
+    if (!ppc::util::IsUnderMpirun()) {
+      std::cerr << "Is not under mpi run" << std::endl;
+      GTEST_SKIP();
+    } else {
+      TabalaevALinearTopologyFuncTests::SetUp();
+    }
+  }
+};
+
+namespace {
+TEST_P(TabalaevALinearTopologyMpi2ProcTests, Mpi2Processes) {
+  int world_size = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+  if (world_size < 2) {
+    std::cerr << "Need at least 2 MPI processes" << std::endl;
+  } else {
+    ExecuteTest(GetParam());
+  }
+}
+
+TEST_P(TabalaevALinearTopologyMpi4ProcTests, Mpi4Processes) {
+  int world_size = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+  if (world_size < 4) {
+    std::cerr << "Need at least 4 MPI processes" << std::endl;
+  } else {
+    ExecuteTest(GetParam());
+  }
+}
+
+TEST_P(TabalaevALinearTopologyMpi6ProcTests, Mpi6Processes) {
+  int world_size = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+  if (world_size < 6) {
+    std::cerr << "Need at least 6 MPI processes" << std::endl;
+  } else {
+    ExecuteTest(GetParam());
+  }
+}
+
+TEST_P(TabalaevALinearTopologyFuncTests, SeqTests) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 4> kMpiTestParam = {
-    std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 100, "From 0 to 1"),
-    std::make_tuple(1, 0, 150, "From 1 to 0"), std::make_tuple(1, 1, 200, "From 1 to 1")};
+const std::array<TestType, 3> kMpi2ProcParams = {
+    std::make_tuple(0, 0, 50, "from 0 to 0"),
+    std::make_tuple(0, 1, 50, "from 0 to 1"),
+    std::make_tuple(1, 0, 100, "from 1 to 0"),
+};
 
-const std::array<TestType, 4> kSeqTestParam = {
-    std::make_tuple(0, 0, 50, "From 0 to 0"), std::make_tuple(0, 1, 100, "From 0 to 1"),
-    std::make_tuple(1, 0, 150, "From 1 to 0"), std::make_tuple(1, 1, 200, "From 1 to 1")};
+const std::array<TestType, 5> kMpi4ProcParams = {
+    std::make_tuple(0, 0, 50, "from 0 to 0"),  std::make_tuple(0, 1, 50, "from 0 to 1"),
+    std::make_tuple(1, 0, 100, "from 1 to 0"), std::make_tuple(0, 3, 150, "from 0 to 3"),
+    std::make_tuple(3, 2, 200, "from 3 to 2"),
+};
 
-const auto kMpiTestTasksList =
-    ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(kMpiTestParam, PPC_SETTINGS_tabalaev_a_linear_topology);
+const std::array<TestType, 4> kMpi6ProcParams = {
+    std::make_tuple(0, 5, 250, "from 0 to 5"),
+    std::make_tuple(5, 2, 250, "from 5 to 2"),
+    std::make_tuple(3, 4, 250, "from 3 to 4"),
+    std::make_tuple(5, 5, 250, "from 5 to 5"),
+};
 
-const auto kSeqTestTasksList =
-    ppc::util::AddFuncTask<TabalaevALinearTopologySEQ, InType>(kSeqTestParam, PPC_SETTINGS_tabalaev_a_linear_topology);
+const std::array<TestType, 2> kSeqParams = {
+    std::make_tuple(0, 0, 50, "from 0 to 0"),
+    std::make_tuple(0, 1, 100, "from 0 to 1"),
+};
 
-const auto kMpiGtestValues = ppc::util::ExpandToValues(kMpiTestTasksList);
-const auto kSeqGtestValues = ppc::util::ExpandToValues(kSeqTestTasksList);
+const auto kMpiTasks2Proc = ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(
+    kMpi2ProcParams, PPC_SETTINGS_tabalaev_a_linear_topology);
+const auto kMpiTasks4Proc = ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(
+    kMpi4ProcParams, PPC_SETTINGS_tabalaev_a_linear_topology);
+const auto kMpiTasks6Proc = ppc::util::AddFuncTask<TabalaevALinearTopologyMPI, InType>(
+    kMpi6ProcParams, PPC_SETTINGS_tabalaev_a_linear_topology);
+const auto kSeqTasks =
+    ppc::util::AddFuncTask<TabalaevALinearTopologySEQ, InType>(kSeqParams, PPC_SETTINGS_tabalaev_a_linear_topology);
 
-const auto kPerfTestName = TabalaevALinearTopologyFuncTests::PrintFuncTestName<TabalaevALinearTopologyFuncTests>;
+const auto kMpiGtestValues2Proc = ppc::util::ExpandToValues(kMpiTasks2Proc);
+const auto kMpiGtestValues4Proc = ppc::util::ExpandToValues(kMpiTasks4Proc);
+const auto kMpiGtestValues6Proc = ppc::util::ExpandToValues(kMpiTasks6Proc);
+const auto kSeqGtestValues = ppc::util::ExpandToValues(kSeqTasks);
 
-INSTANTIATE_TEST_SUITE_P(LinearTopologyMpiTests, TabalaevALinearTopologyFuncTests, kMpiGtestValues, kPerfTestName);
+const auto kFuncTestName = TabalaevALinearTopologyFuncTests::PrintFuncTestName<TabalaevALinearTopologyFuncTests>;
 
-INSTANTIATE_TEST_SUITE_P(LinearTopologySeqTests, TabalaevALinearTopologyFuncTests, kSeqGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(Mpi2ProcTests, TabalaevALinearTopologyMpi2ProcTests, kMpiGtestValues2Proc, kFuncTestName);
+
+INSTANTIATE_TEST_SUITE_P(Mpi4ProcTests, TabalaevALinearTopologyMpi4ProcTests, kMpiGtestValues4Proc, kFuncTestName);
+
+INSTANTIATE_TEST_SUITE_P(Mpi6ProcTests, TabalaevALinearTopologyMpi6ProcTests, kMpiGtestValues6Proc, kFuncTestName);
+
+INSTANTIATE_TEST_SUITE_P(SeqTests, TabalaevALinearTopologyFuncTests, kSeqGtestValues, kFuncTestName);
 
 }  // namespace
 

@@ -26,9 +26,7 @@ class TabalaevALinearTopologyPerfTests : public ppc::util::BaseRunPerfTests<InTy
       int world_size = 0;
       MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-      if (world_size < (std::max(sender, receiver) + 1)) {
-        GTEST_SKIP() << "Skipping test: not enough processes";
-      }
+      receiver = world_size - 1;
     }
 
     size_t size = 15000000;
