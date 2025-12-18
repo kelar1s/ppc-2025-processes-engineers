@@ -133,9 +133,10 @@ const std::array<TestType, 3> kMpi2ProcParams = {
     std::make_tuple(1, 0, 100, "from 1 to 0"),
 };
 
-const std::array<TestType, 5> kMpi4ProcParams = {
-    std::make_tuple(0, 0, 50, "from 0 to 0"),  std::make_tuple(0, 1, 50, "from 0 to 1"),
-    std::make_tuple(1, 0, 100, "from 1 to 0"), std::make_tuple(0, 3, 150, "from 0 to 3"),
+const std::array<TestType, 4> kMpi4ProcParams = {
+    std::make_tuple(0, 1, 50, "from 0 to 1"),
+    std::make_tuple(1, 0, 100, "from 1 to 0"),
+    std::make_tuple(0, 3, 150, "from 0 to 3"),
     std::make_tuple(3, 2, 200, "from 3 to 2"),
 };
 

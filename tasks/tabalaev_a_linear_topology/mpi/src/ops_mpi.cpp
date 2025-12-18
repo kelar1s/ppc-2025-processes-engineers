@@ -21,7 +21,7 @@ bool TabalaevALinearTopologyMPI::ValidationImpl() {
 
   int sender = std::get<0>(GetInput());
 
-  int validation = 1;
+  int validation = 0;
   if (world_rank == sender) {
     int world_size = 0;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -29,8 +29,8 @@ bool TabalaevALinearTopologyMPI::ValidationImpl() {
     auto receiver = std::get<1>(GetInput());
     auto data = std::get<2>(GetInput());
 
-    if ((sender < 0 || sender >= world_size) || (receiver < 0 || receiver >= world_size) || data.empty()) {
-      validation = 0;
+    if (sender >= 0 && sender < world_size && receiver >= 0 && receiver < world_size && !data.empty()) {
+      validation = 1;
     }
   }
 
