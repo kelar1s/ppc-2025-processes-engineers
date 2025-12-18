@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -59,33 +59,30 @@ class TabalaevALinearTopologyFuncTests : public ppc::util::BaseRunFuncTests<InTy
 class TabalaevALinearTopologyMpi2ProcTests : public TabalaevALinearTopologyFuncTests {
   void SetUp() override {
     if (!ppc::util::IsUnderMpirun()) {
-      std::cerr << "Is not under mpi run" << std::endl;
+      std::cerr << "Is not under mpi run\n";
       GTEST_SKIP();
-    } else {
-      TabalaevALinearTopologyFuncTests::SetUp();
     }
+    TabalaevALinearTopologyFuncTests::SetUp();
   }
 };
 
 class TabalaevALinearTopologyMpi4ProcTests : public TabalaevALinearTopologyFuncTests {
   void SetUp() override {
     if (!ppc::util::IsUnderMpirun()) {
-      std::cerr << "Is not under mpi run" << std::endl;
+      std::cerr << "Is not under mpi run\n";
       GTEST_SKIP();
-    } else {
-      TabalaevALinearTopologyFuncTests::SetUp();
     }
+    TabalaevALinearTopologyFuncTests::SetUp();
   }
 };
 
 class TabalaevALinearTopologyMpi6ProcTests : public TabalaevALinearTopologyFuncTests {
   void SetUp() override {
     if (!ppc::util::IsUnderMpirun()) {
-      std::cerr << "Is not under mpi run" << std::endl;
+      std::cerr << "Is not under mpi run\n";
       GTEST_SKIP();
-    } else {
-      TabalaevALinearTopologyFuncTests::SetUp();
     }
+    TabalaevALinearTopologyFuncTests::SetUp();
   }
 };
 
@@ -95,7 +92,7 @@ TEST_P(TabalaevALinearTopologyMpi2ProcTests, Mpi2Processes) {
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
   if (world_size < 2) {
-    std::cerr << "Need at least 2 MPI processes" << std::endl;
+    std::cerr << "Need at least 2 MPI processes\n";
   } else {
     ExecuteTest(GetParam());
   }
@@ -106,7 +103,7 @@ TEST_P(TabalaevALinearTopologyMpi4ProcTests, Mpi4Processes) {
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
   if (world_size < 4) {
-    std::cerr << "Need at least 4 MPI processes" << std::endl;
+    std::cerr << "Need at least 4 MPI processes\n";
   } else {
     ExecuteTest(GetParam());
   }
@@ -117,7 +114,7 @@ TEST_P(TabalaevALinearTopologyMpi6ProcTests, Mpi6Processes) {
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
   if (world_size < 6) {
-    std::cerr << "Need at least 6 MPI processes" << std::endl;
+    std::cerr << "Need at least 6 MPI processes\n";
   } else {
     ExecuteTest(GetParam());
   }
