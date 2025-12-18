@@ -40,7 +40,7 @@
 
 ### Код последовательной версии алгоритма
 ```
-bool TabalaevAElemMatMinSEQ::RunImpl() {
+bool TabalaevACannonMatMulSEQ::RunImpl() {
   auto &matrix = std::get<2>(GetInput());
 
   int minik = matrix[0];
@@ -69,7 +69,7 @@ bool TabalaevAElemMatMinSEQ::RunImpl() {
 
 ### Код параллельной версии алгоритма
 ```
-bool TabalaevAElemMatMinMPI::RunImpl() {
+bool TabalaevACannonMatMulMPI::RunImpl() {
   int world_size = 1;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   int world_rank = 0;

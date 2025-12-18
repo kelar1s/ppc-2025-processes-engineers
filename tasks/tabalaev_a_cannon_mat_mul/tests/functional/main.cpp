@@ -9,15 +9,15 @@
 #include <tuple>
 #include <vector>
 
-#include "tabalaev_a_elem_mat_min/common/include/common.hpp"
-#include "tabalaev_a_elem_mat_min/mpi/include/ops_mpi.hpp"
-#include "tabalaev_a_elem_mat_min/seq/include/ops_seq.hpp"
+#include "tabalaev_a_cannon_mat_mul/common/include/common.hpp"
+#include "tabalaev_a_cannon_mat_mul/mpi/include/ops_mpi.hpp"
+#include "tabalaev_a_cannon_mat_mul/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
 #include "util/include/util.hpp"
 
-namespace tabalaev_a_elem_mat_min {
+namespace tabalaev_a_cannon_mat_mul {
 
-class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
+class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
   static std::string PrintTestParam(const TestType &test_param) {
     int minik = std::get<2>(test_param);
@@ -64,7 +64,7 @@ class TabalaevAElemMatMinFuncTests : public ppc::util::BaseRunFuncTests<InType, 
 
 namespace {
 
-TEST_P(TabalaevAElemMatMinFuncTests, MatmulFromPic) {
+TEST_P(TabalaevACannonMatMulFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
@@ -76,15 +76,15 @@ const std::array<TestType, 6> kTestParam = {std::make_tuple(3, 3, -15, "Small_ma
                                             std::make_tuple(1, 1, -10, "Only_1_elem")};
 
 const auto kTestTasksList = std::tuple_cat(
-    ppc::util::AddFuncTask<TabalaevAElemMatMinMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_elem_mat_min),
-    ppc::util::AddFuncTask<TabalaevAElemMatMinSEQ, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_elem_mat_min));
+    ppc::util::AddFuncTask<TabalaevACannonMatMulMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_cannon_mat_mul),
+    ppc::util::AddFuncTask<TabalaevACannonMatMulSEQ, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_cannon_mat_mul));
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
-const auto kPerfTestName = TabalaevAElemMatMinFuncTests::PrintFuncTestName<TabalaevAElemMatMinFuncTests>;
+const auto kPerfTestName = TabalaevACannonMatMulFuncTests::PrintFuncTestName<TabalaevACannonMatMulFuncTests>;
 
-INSTANTIATE_TEST_SUITE_P(PicMatrixTests, TabalaevAElemMatMinFuncTests, kGtestValues, kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(PicMatrixTests, TabalaevACannonMatMulFuncTests, kGtestValues, kPerfTestName);
 
 }  // namespace
 
-}  // namespace tabalaev_a_elem_mat_min
+}  // namespace tabalaev_a_cannon_mat_mul

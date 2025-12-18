@@ -1,16 +1,16 @@
 #pragma once
 
-#include "tabalaev_a_elem_mat_min/common/include/common.hpp"
+#include "tabalaev_a_cannon_mat_mul/common/include/common.hpp"
 #include "task/include/task.hpp"
 
-namespace tabalaev_a_elem_mat_min {
+namespace tabalaev_a_cannon_mat_mul {
 
-class TabalaevAElemMatMinSEQ : public BaseTask {
+class TabalaevACannonMatMulSEQ : public BaseTask {
  public:
   static constexpr ppc::task::TypeOfTask GetStaticTypeOfTask() {
     return ppc::task::TypeOfTask::kSEQ;
   }
-  explicit TabalaevAElemMatMinSEQ(const InType &in);
+  explicit TabalaevACannonMatMulSEQ(const InType &in);
 
  private:
   bool ValidationImpl() override;
@@ -19,4 +19,4 @@ class TabalaevAElemMatMinSEQ : public BaseTask {
   bool PostProcessingImpl() override;
 };
 
-}  // namespace tabalaev_a_elem_mat_min
+}  // namespace tabalaev_a_cannon_mat_mul
