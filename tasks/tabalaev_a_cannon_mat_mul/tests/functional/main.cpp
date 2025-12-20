@@ -20,46 +20,68 @@ namespace tabalaev_a_cannon_mat_mul {
 class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
   static std::string PrintTestParam(const TestType &test_param) {
-    int minik = std::get<2>(test_param);
-    std::string str_minik = (minik < 0) ? "minus" + std::to_string(-minik) : std::to_string(minik);
-    return std::to_string(std::get<0>(test_param)) + "x" + std::to_string(std::get<1>(test_param)) + "_min_" +
-           str_minik + "_" + std::get<3>(test_param);
+    return std::get<2>(test_param) + "_" + std::to_string(std::get<0>(test_param)) + "x" +
+           std::to_string(std::get<0>(test_param)) + "_Elems_Up_To_" + std::to_string(std::get<1>(test_param));
   }
 
  protected:
   void SetUp() override {
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
 
-    int rows = std::get<0>(params);
-    int columns = std::get<1>(params);
-    int minik = std::get<2>(params);
+    size_t rc = std::get<0>(params);
+    size_t size = rc * rc;
 
-    std::vector<int> matrix(static_cast<size_t>(rows) * static_cast<size_t>(columns));
+    int upTo = std::get<1>(params);
 
-    std::uniform_int_distribution<int> dist(minik, 250);
+    std::vector<double> A(rc * rc);
+    std::vector<double> B(rc * rc);
 
-    for (int &elem : matrix) {
-      elem = dist(gen_);
+    for (size_t i = 0; i < size; i++) {
+      A[i] = static_cast<double>(upTo - static_cast<int>(i));
+      B[i] = static_cast<double>(i) * static_cast<double>(upTo) / static_cast<double>(size - 1);
     }
 
-    matrix[(rows * columns) / 2] = minik;
-
-    input_data_ = std::make_tuple(static_cast<size_t>(rows), static_cast<size_t>(columns), matrix);
-    expected_minik_ = minik;
+    input_data_ = std::make_tuple(rc, A, B);
+    std::vector<double> C = MatMul(rc, A, B);
+    expected_output_ = C;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return (expected_minik_ == output_data);
+    if (expected_output_.size() != output_data.size()) {
+      return false;
+    }
+    const double epsilon = 1e-6;
+    for (size_t i = 0; i < expected_output_.size(); ++i) {
+      if (std::abs(expected_output_[i] - output_data[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
   }
 
   InType GetTestInputData() final {
     return input_data_;
   }
 
+  std::vector<double> MatMul(size_t N, const std::vector<double> &A, const std::vector<double> &B) {
+    std::vector<double> C(N * N, 0.0);
+
+    for (size_t i = 0; i < N; ++i) {
+      for (size_t j = 0; j < N; ++j) {
+        double sum = 0.0;
+        for (size_t k = 0; k < N; ++k) {
+          sum += A[i * N + k] * B[k * N + j];
+        }
+        C[i * N + j] = sum;
+      }
+    }
+
+    return C;
+  }
+
  private:
   InType input_data_;
-  OutType expected_minik_ = 0;
-  std::mt19937 gen_{std::random_device{}()};
+  OutType expected_output_;
 };
 
 namespace {
@@ -68,12 +90,11 @@ TEST_P(TabalaevACannonMatMulFuncTests, MatmulFromPic) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 6> kTestParam = {std::make_tuple(3, 3, -15, "Small_matrix"),
-                                            std::make_tuple(5, 5, 32, "Medium_matrix"),
-                                            std::make_tuple(10, 10, -41, "Large_matrix"),
-                                            std::make_tuple(10, 5, 4, "Different_size_matrix_rows"),
-                                            std::make_tuple(6, 11, -1, "Different_size_matrix_columns"),
-                                            std::make_tuple(1, 1, -10, "Only_1_elem")};
+const std::array<TestType, 3> kTestParam = {
+    std::make_tuple(2, 100, "Small_matrix"),
+    std::make_tuple(4, 1000, "Medium_matrix"),
+    std::make_tuple(8, 10000, "Large_matrix"),
+};
 
 const auto kTestTasksList = std::tuple_cat(
     ppc::util::AddFuncTask<TabalaevACannonMatMulMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_cannon_mat_mul),
