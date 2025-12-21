@@ -81,6 +81,10 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
   MPI_Comm gridComm;
   MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 1, &gridComm);
 
+  if (gridComm == MPI_COMM_NULL) {
+    return true;
+  }
+
   int coords[2];
   MPI_Cart_coords(gridComm, world_rank, 2, coords);
   int row = coords[0];
