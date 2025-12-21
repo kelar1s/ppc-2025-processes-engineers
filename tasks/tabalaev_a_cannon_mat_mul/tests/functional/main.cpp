@@ -111,7 +111,7 @@ TEST_P(TabalaevACannonMpiTests, MpiTest) {
   int q = static_cast<int>(std::sqrt(world_size));
   TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
   int N = std::get<0>(params);
-  if (q * q != world_size && N % q == 0) {
+  if (q * q == world_size && N % q == 0) {
     ExecuteTest(GetParam());
   }
   std::cerr << "The conditions for matrix multiplication using Cannon's method are not met!\n";
