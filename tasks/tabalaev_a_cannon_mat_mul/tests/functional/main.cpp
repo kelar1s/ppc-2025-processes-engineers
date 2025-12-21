@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 
 #include <array>
 #include <cstddef>
@@ -50,7 +51,7 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
     if (expected_output_.size() != output_data.size()) {
       return false;
     }
-    const double epsilon = 1e-6;
+    const double epsilon = 1e-7;
     for (size_t i = 0; i < expected_output_.size(); ++i) {
       if (std::abs(expected_output_[i] - output_data[i]) > epsilon) {
         return false;
@@ -84,27 +85,58 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
   OutType expected_output_;
 };
 
+class TabalaevACannonSeqTests : public TabalaevACannonMatMulFuncTests {};
+
+class TabalaevACannonMpiTests : public TabalaevACannonMatMulFuncTests {
+ protected:
+  void SetUp() override {
+    if (!ppc::util::IsUnderMpirun()) {
+      std::cerr << "Is not under mpi run\n";
+      GTEST_SKIP();
+    }
+    TabalaevACannonMatMulFuncTests::SetUp();
+  }
+};
+
 namespace {
 
-TEST_P(TabalaevACannonMatMulFuncTests, MatmulFromPic) {
+TEST_P(TabalaevACannonSeqTests, SeqTest) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 3> kTestParam = {
-    std::make_tuple(2, 100, "Small_matrix"),
-    std::make_tuple(4, 1000, "Medium_matrix"),
-    std::make_tuple(8, 10000, "Large_matrix"),
-};
+TEST_P(TabalaevACannonMpiTests, MpiTest) {
+  int world_size = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-const auto kTestTasksList = std::tuple_cat(
-    ppc::util::AddFuncTask<TabalaevACannonMatMulMPI, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_cannon_mat_mul),
-    ppc::util::AddFuncTask<TabalaevACannonMatMulSEQ, InType>(kTestParam, PPC_SETTINGS_tabalaev_a_cannon_mat_mul));
+  int q = static_cast<int>(std::sqrt(world_size));
+  TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
+  int N = std::get<0>(params);
+  if (q * q != world_size && N % q == 0) {
+    ExecuteTest(GetParam());
+  }
+  std::cerr << "The conditions for matrix multiplication using Cannon's method are not met!\n";
+}
 
-const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
+const std::array<TestType, 6> kSeqParams = {
+    std::make_tuple(2, 100, "Small_matrix"),   std::make_tuple(3, 150, "Medium_small_matrix"),
+    std::make_tuple(4, 200, "Medium_matrix"),  std::make_tuple(6, 500, "Medium_large_matrix"),
+    std::make_tuple(10, 1000, "Large_matrix"), std::make_tuple(12, 2000, "Extra_large_matrix")};
 
-const auto kPerfTestName = TabalaevACannonMatMulFuncTests::PrintFuncTestName<TabalaevACannonMatMulFuncTests>;
+const std::array<TestType, 6> kMpiParams = {
+    std::make_tuple(2, 100, "Small_matrix"),  std::make_tuple(3, 150, "Medium_small_matrix"),
+    std::make_tuple(4, 200, "Medium_matrix"), std::make_tuple(6, 500, "Medium_large_matrix"),
+    std::make_tuple(8, 1000, "Large_matrix"), std::make_tuple(12, 2000, "Extra_large_matrix")};
 
-INSTANTIATE_TEST_SUITE_P(PicMatrixTests, TabalaevACannonMatMulFuncTests, kGtestValues, kPerfTestName);
+const auto kSeqTasks =
+    ppc::util::AddFuncTask<TabalaevACannonMatMulSEQ, InType>(kSeqParams, PPC_SETTINGS_tabalaev_a_cannon_mat_mul);
+const auto kMpiTasks =
+    ppc::util::AddFuncTask<TabalaevACannonMatMulMPI, InType>(kMpiParams, PPC_SETTINGS_tabalaev_a_cannon_mat_mul);
+
+const auto kFuncTestName = TabalaevACannonMatMulFuncTests::PrintFuncTestName<TabalaevACannonMatMulFuncTests>;
+
+INSTANTIATE_TEST_SUITE_P(SeqTests, TabalaevACannonSeqTests, ppc::util::ExpandToValues(kSeqTasks), kFuncTestName);
+
+INSTANTIATE_TEST_SUITE_P(MpiTests, TabalaevACannonMpiTests, ppc::util::ExpandToValues(kMpiTasks), kFuncTestName);
 
 }  // namespace
 

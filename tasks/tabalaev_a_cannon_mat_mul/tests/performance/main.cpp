@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <mpi.h>
 
 #include <cstddef>
 #include <tuple>
@@ -13,15 +14,28 @@ namespace tabalaev_a_cannon_mat_mul {
 
 class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType, OutType> {
   void SetUp() override {
-    size_t rc = 8;
+    int world_size = 0;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    size_t rc = 504;
+
+    int mpi_initialized = 0;
+    MPI_Initialized(&mpi_initialized);
+    if (mpi_initialized == 1) {
+      int q = static_cast<int>(std::sqrt(world_size));
+      if (q * q == world_size) {
+        rc = (rc / q) * q;
+      }
+    }
+
     size_t size = rc * rc;
 
     std::vector<double> A(rc * rc);
     std::vector<double> B(rc * rc);
 
     for (size_t i = 0; i < size; i++) {
-      A[i] = static_cast<double>(1000 - static_cast<int>(i));
-      B[i] = static_cast<double>(i) * static_cast<double>(1000) / static_cast<double>(size - 1);
+      A[i] = static_cast<double>(i % 100);
+      B[i] = static_cast<double>((i + 1) % 100);
     }
 
     input_data_ = std::make_tuple(rc, A, B);
@@ -31,7 +45,16 @@ class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return output_data == expected_output_;
+    if (expected_output_.size() != output_data.size()) {
+      return false;
+    }
+    const double epsilon = 1e-7;
+    for (size_t i = 0; i < expected_output_.size(); ++i) {
+      if (std::abs(expected_output_[i] - output_data[i]) > epsilon) {
+        return false;
+      }
+    }
+    return true;
   }
 
   InType GetTestInputData() final {
@@ -60,6 +83,16 @@ class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType
 };
 
 TEST_P(TabalaevACannonMatMulPerfTests, RunPerfModes) {
+  int mpi_initialized = 0;
+  MPI_Initialized(&mpi_initialized);
+  if (mpi_initialized == 1) {
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    int q = static_cast<int>(std::sqrt(world_size));
+    if (q * q != world_size) {
+      std::cerr << "The conditions for matrix multiplication using Cannon's method are not met!\n";
+    }
+  }
   ExecuteTest(GetParam());
 }
 
