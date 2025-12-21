@@ -2,10 +2,11 @@
 #include <mpi.h>
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>
-#include <random>
+#include <iostream>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -32,19 +33,19 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
     size_t rc = std::get<0>(params);
     size_t size = rc * rc;
 
-    int upTo = std::get<1>(params);
+    int up_to = std::get<1>(params);
 
-    std::vector<double> A(rc * rc);
-    std::vector<double> B(rc * rc);
+    std::vector<double> a(rc * rc);
+    std::vector<double> b(rc * rc);
 
     for (size_t i = 0; i < size; i++) {
-      A[i] = static_cast<double>(upTo - static_cast<int>(i));
-      B[i] = static_cast<double>(i) * static_cast<double>(upTo) / static_cast<double>(size - 1);
+      a[i] = static_cast<double>(up_to - static_cast<int>(i));
+      b[i] = static_cast<double>(i) * static_cast<double>(up_to) / static_cast<double>(size - 1);
     }
 
-    input_data_ = std::make_tuple(rc, A, B);
-    std::vector<double> C = MatMul(rc, A, B);
-    expected_output_ = C;
+    input_data_ = std::make_tuple(rc, a, b);
+    std::vector<double> c = MatMul(rc, a, b);
+    expected_output_ = c;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
@@ -64,20 +65,20 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
     return input_data_;
   }
 
-  std::vector<double> MatMul(size_t N, const std::vector<double> &A, const std::vector<double> &B) {
-    std::vector<double> C(N * N, 0.0);
+  static std::vector<double> MatMul(size_t n, const std::vector<double> &a, const std::vector<double> &b) {
+    std::vector<double> c(n * n, 0.0);
 
-    for (size_t i = 0; i < N; ++i) {
-      for (size_t j = 0; j < N; ++j) {
+    for (size_t i = 0; i < n; ++i) {
+      for (size_t j = 0; j < n; ++j) {
         double sum = 0.0;
-        for (size_t k = 0; k < N; ++k) {
-          sum += A[i * N + k] * B[k * N + j];
+        for (size_t k = 0; k < n; ++k) {
+          sum += a[(i * n) + k] * b[(k * n) + j];
         }
-        C[i * N + j] = sum;
+        c[(i * n) + j] = sum;
       }
     }
 
-    return C;
+    return c;
   }
 
  private:
@@ -110,8 +111,8 @@ TEST_P(TabalaevACannonMpiTests, MpiTest) {
 
   int q = static_cast<int>(std::sqrt(world_size));
   TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-  int N = std::get<0>(params);
-  if (q * q == world_size && N % q == 0) {
+  size_t n = std::get<0>(params);
+  if (q * q == world_size && n % static_cast<size_t>(q) == 0) {
     ExecuteTest(GetParam());
   }
   std::cerr << "The conditions for matrix multiplication using Cannon's method are not met!\n";

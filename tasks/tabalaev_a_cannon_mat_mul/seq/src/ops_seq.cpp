@@ -1,6 +1,5 @@
 #include "tabalaev_a_cannon_mat_mul/seq/include/ops_seq.hpp"
 
-#include <algorithm>
 #include <cstddef>
 #include <vector>
 
@@ -15,11 +14,11 @@ TabalaevACannonMatMulSEQ::TabalaevACannonMatMulSEQ(const InType &in) {
 }
 
 bool TabalaevACannonMatMulSEQ::ValidationImpl() {
-  const auto N = std::get<0>(GetInput());
-  const auto &A = std::get<1>(GetInput());
-  const auto &B = std::get<2>(GetInput());
+  const size_t n = std::get<0>(GetInput());
+  const auto &a = std::get<1>(GetInput());
+  const auto &b = std::get<2>(GetInput());
 
-  return N > 0 && A.size() == N * N && B.size() == N * N;
+  return n > 0 && a.size() == n * n && b.size() == n * n;
 }
 
 bool TabalaevACannonMatMulSEQ::PreProcessingImpl() {
@@ -28,22 +27,22 @@ bool TabalaevACannonMatMulSEQ::PreProcessingImpl() {
 }
 
 bool TabalaevACannonMatMulSEQ::RunImpl() {
-  const auto N = std::get<0>(GetInput());
-  const auto &A = std::get<1>(GetInput());
-  const auto &B = std::get<2>(GetInput());
-  std::vector<double> C(N * N, 0.0);
+  const auto n = std::get<0>(GetInput());
+  const auto &a = std::get<1>(GetInput());
+  const auto &b = std::get<2>(GetInput());
+  std::vector<double> c(n * n, 0.0);
 
-  for (size_t i = 0; i < N; ++i) {
-    for (size_t j = 0; j < N; ++j) {
+  for (size_t i = 0; i < n; ++i) {
+    for (size_t j = 0; j < n; ++j) {
       double sum = 0.0;
-      for (size_t k = 0; k < N; ++k) {
-        sum += A[i * N + k] * B[k * N + j];
+      for (size_t k = 0; k < n; ++k) {
+        sum += a[(i * n) + k] * b[(k * n) + j];
       }
-      C[i * N + j] = sum;
+      c[(i * n) + j] = sum;
     }
   }
 
-  GetOutput() = C;
+  GetOutput() = c;
   return true;
 }
 

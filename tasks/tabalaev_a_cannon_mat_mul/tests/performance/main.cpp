@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
+#include <cmath>
 #include <cstddef>
+#include <iostream>
 #include <tuple>
 #include <vector>
 
@@ -30,18 +32,18 @@ class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType
 
     size_t size = rc * rc;
 
-    std::vector<double> A(rc * rc);
-    std::vector<double> B(rc * rc);
+    std::vector<double> a(rc * rc);
+    std::vector<double> b(rc * rc);
 
     for (size_t i = 0; i < size; i++) {
-      A[i] = static_cast<double>(i % 100);
-      B[i] = static_cast<double>((i + 1) % 100);
+      a[i] = static_cast<double>(i % 100);
+      b[i] = static_cast<double>((i + 1) % 100);
     }
 
-    input_data_ = std::make_tuple(rc, A, B);
+    input_data_ = std::make_tuple(rc, a, b);
 
-    std::vector<double> C = MatMul(rc, A, B);
-    expected_output_ = C;
+    std::vector<double> c = MatMul(rc, a, b);
+    expected_output_ = c;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
@@ -61,32 +63,30 @@ class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType
     return input_data_;
   }
 
-  std::vector<double> MatMul(size_t N, const std::vector<double> &A, const std::vector<double> &B) {
-    std::vector<double> C(N * N, 0.0);
-
-    for (size_t i = 0; i < N; ++i) {
-      for (size_t j = 0; j < N; ++j) {
+  static std::vector<double> MatMul(size_t n, const std::vector<double> &a, const std::vector<double> &b) {
+    std::vector<double> c(n * n, 0.0);
+    for (size_t i = 0; i < n; ++i) {
+      for (size_t j = 0; j < n; ++j) {
         double sum = 0.0;
-        for (size_t k = 0; k < N; ++k) {
-          sum += A[i * N + k] * B[k * N + j];
+        for (size_t k = 0; k < n; ++k) {
+          sum += a[(i * n) + k] * b[(k * n) + j];
         }
-        C[i * N + j] = sum;
+        c[i * n + j] = sum;
       }
     }
-
-    return C;
+    return c;
   }
 
  private:
   InType input_data_;
-  std::vector<double> expected_output_ = {};
+  std::vector<double> expected_output_;
 };
 
 TEST_P(TabalaevACannonMatMulPerfTests, RunPerfModes) {
   int mpi_initialized = 0;
   MPI_Initialized(&mpi_initialized);
   if (mpi_initialized == 1) {
-    int world_size;
+    int world_size = 0;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     int q = static_cast<int>(std::sqrt(world_size));
     if (q * q != world_size) {
