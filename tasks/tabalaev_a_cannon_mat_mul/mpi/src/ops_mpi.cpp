@@ -14,10 +14,10 @@ namespace tabalaev_a_cannon_mat_mul {
 
 namespace {
 void LocalMatrixMultiply(const std::vector<double> &a, const std::vector<double> &b, std::vector<double> &c, int n) {
-  for (size_t i = 0; i < n; ++i) {
-    for (size_t j = 0; j < n; ++j) {
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
       double sum = 0.0;
-      for (size_t k = 0; k < n; ++k) {
+      for (int k = 0; k < n; ++k) {
         sum += a[(i * n) + k] * b[(k * n) + j];
       }
       c[(i * n) + j] = sum;
