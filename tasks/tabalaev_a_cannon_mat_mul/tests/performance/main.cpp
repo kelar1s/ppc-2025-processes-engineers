@@ -90,7 +90,7 @@ TEST_P(TabalaevACannonMatMulPerfTests, RunPerfModes) {
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     int q = static_cast<int>(std::sqrt(world_size));
     if (q * q != world_size) {
-      std::cerr << "The conditions for matrix multiplication using Cannon's method are not met!\n";
+      GTEST_SKIP() << "Skipping Cannons algorithm: not a perfect square";
     }
   }
   ExecuteTest(GetParam());
