@@ -71,7 +71,7 @@ class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType
         for (size_t k = 0; k < n; ++k) {
           sum += a[(i * n) + k] * b[(k * n) + j];
         }
-        c[i * n + j] = sum;
+        c[(i * n) + j] = sum;
       }
     }
     return c;

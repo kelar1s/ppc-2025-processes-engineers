@@ -5,6 +5,7 @@
 #include <array>
 #include <climits>
 #include <cmath>
+#include <cstddef>
 #include <vector>
 
 #include "tabalaev_a_cannon_mat_mul/common/include/common.hpp"
@@ -126,7 +127,10 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
                  MPI_DOUBLE, 0, grid_comm);
   }
 
-  int left = 0, right = 0, up = 0, down = 0;
+  int left = 0;
+  int right = 0;
+  int up = 0;
+  int down = 0;
   MPI_Cart_shift(grid_comm, 1, 1, &right, &left);
   MPI_Cart_shift(grid_comm, 0, 1, &down, &up);
 
