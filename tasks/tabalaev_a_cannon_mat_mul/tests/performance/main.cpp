@@ -82,16 +82,6 @@ class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType
 };
 
 TEST_P(TabalaevACannonMatMulPerfTests, RunPerfModes) {
-  int mpi_initialized = 0;
-  MPI_Initialized(&mpi_initialized);
-  if (mpi_initialized == 1) {
-    int world_size = 0;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    int q = static_cast<int>(std::sqrt(world_size));
-    if (q * q != world_size) {
-      GTEST_SKIP() << "Skipping Cannons algorithm: not a perfect square";
-    }
-  }
   ExecuteTest(GetParam());
 }
 
