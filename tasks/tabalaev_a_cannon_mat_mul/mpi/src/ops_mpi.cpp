@@ -12,6 +12,7 @@
 
 namespace tabalaev_a_cannon_mat_mul {
 
+namespace {
 void LocalMatrixMultiply(const std::vector<double> &A, const std::vector<double> &B, std::vector<double> &C, int size) {
   for (int i = 0; i < size; ++i) {
     for (int k = 0; k < size; ++k) {
@@ -22,6 +23,7 @@ void LocalMatrixMultiply(const std::vector<double> &A, const std::vector<double>
     }
   }
 }
+}  // namespace
 
 TabalaevACannonMatMulMPI::TabalaevACannonMatMulMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
