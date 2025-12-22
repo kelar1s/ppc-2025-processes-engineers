@@ -72,22 +72,22 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
 
   std::array<int, 2> dims = {q, q};
   std::array<int, 2> periods = {1, 1};
-  MPI_Comm grid_comm;
+  MPI_Comm grid_comm = MPI_COMM_NULL;
   MPI_Cart_create(MPI_COMM_WORLD, 2, dims.data(), periods.data(), 1, &grid_comm);
 
   int grid_rank = 0;
   MPI_Comm_rank(grid_comm, &grid_rank);
 
-  std::array<int, 2> coords;
+  std::array<int, 2> coords = {0, 0};
   MPI_Cart_coords(grid_comm, grid_rank, 2, coords.data());
 
   int row = coords[0];
   int col = coords[1];
 
-  MPI_Datatype block_type = 0;
+  MPI_Datatype block_type = MPI_DATATYPE_NULL;
   MPI_Type_vector(block_size, block_size, n, MPI_DOUBLE, &block_type);
 
-  MPI_Datatype resized_block = 0;
+  MPI_Datatype resized_block = MPI_DATATYPE_NULL;
   MPI_Type_create_resized(block_type, 0, sizeof(double), &resized_block);
   MPI_Type_commit(&resized_block);
 
@@ -106,8 +106,12 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
     }
   }
 
-  auto *a = (grid_rank == 0) ? std::get<1>(GetInput()).data() : nullptr;
-  auto *b = (grid_rank == 0) ? std::get<2>(GetInput()).data() : nullptr;
+  double *a = nullptr;
+  double *b = nullptr;
+  if (grid_rank == 0) {
+    a = std::get<1>(GetInput()).data();
+    b = std::get<2>(GetInput()).data();
+  }
 
   MPI_Scatterv(a, counts.data(), displs.data(), resized_block, local_a.data(), block_elems, MPI_DOUBLE, 0, grid_comm);
   MPI_Scatterv(b, counts.data(), displs.data(), resized_block, local_b.data(), block_elems, MPI_DOUBLE, 0, grid_comm);
@@ -121,12 +125,10 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
   MPI_Cart_shift(grid_comm, 0, 1, &up, &down);
 
   for (int i = 0; i < row; ++i) {
-    MPI_Sendrecv_replace(local_a.data(), static_cast<int>(block_elems), MPI_DOUBLE, left, 0, right, 0, grid_comm,
-                         MPI_STATUS_IGNORE);
+    MPI_Sendrecv_replace(local_a.data(), block_elems, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
   }
   for (int i = 0; i < col; ++i) {
-    MPI_Sendrecv_replace(local_b.data(), static_cast<int>(block_elems), MPI_DOUBLE, up, 1, down, 1, grid_comm,
-                         MPI_STATUS_IGNORE);
+    MPI_Sendrecv_replace(local_b.data(), block_elems, MPI_DOUBLE, up, 1, down, 1, grid_comm, MPI_STATUS_IGNORE);
   }
 
   for (int k = 0; k < q; ++k) {

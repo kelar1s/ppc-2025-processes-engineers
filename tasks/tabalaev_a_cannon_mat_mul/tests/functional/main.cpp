@@ -44,7 +44,7 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
     input_data_ = std::make_tuple(rc, a, b);
 
     std::vector<double> c(size, 0.0);
-    LocalMatrixMultiply(a, b, c, rc);
+    LocalMatrixMultiply(a, b, c, static_cast<int>(rc));
     expected_output_ = c;
   }
 

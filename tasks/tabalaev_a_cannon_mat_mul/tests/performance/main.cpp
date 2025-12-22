@@ -42,7 +42,7 @@ class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType
     input_data_ = std::make_tuple(rc, a, b);
 
     std::vector<double> c(size, 0.0);
-    LocalMatrixMultiply(a, b, c, rc);
+    LocalMatrixMultiply(a, b, c, static_cast<int>(rc));
     expected_output_ = c;
   }
 
@@ -84,7 +84,7 @@ TEST_P(TabalaevACannonMatMulPerfTests, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, TabalaevACannonMatMulMPI /*, TabalaevACannonMatMulSEQ*/>(
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, TabalaevACannonMatMulMPI, TabalaevACannonMatMulSEQ>(
     PPC_SETTINGS_tabalaev_a_cannon_mat_mul);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
