@@ -42,7 +42,9 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
     }
 
     input_data_ = std::make_tuple(rc, a, b);
-    std::vector<double> c = SimpleMatrixMultiply(rc, a, b);
+
+    std::vector<double> c(size, 0.0);
+    LocalMatrixMultiply(a, b, c, rc);
     expected_output_ = c;
   }
 
@@ -63,21 +65,16 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
     return input_data_;
   }
 
-  static std::vector<double> SimpleMatrixMultiply(size_t n, const std::vector<double> &a,
-                                                  const std::vector<double> &b) {
-    std::vector<double> c(n * n, 0.0);
-
-    for (size_t i = 0; i < n; ++i) {
-      for (size_t j = 0; j < n; ++j) {
-        double sum = 0.0;
-        for (size_t k = 0; k < n; ++k) {
-          sum += a[(i * n) + k] * b[(k * n) + j];
+  static void LocalMatrixMultiply(const std::vector<double> &a, const std::vector<double> &b, std::vector<double> &c,
+                                  int n) {
+    for (int i = 0; i < n; ++i) {
+      for (int k = 0; k < n; ++k) {
+        double temp = a[(i * n) + k];
+        for (int j = 0; j < n; ++j) {
+          c[(i * n) + j] += temp * b[(k * n) + j];
         }
-        c[(i * n) + j] = sum;
       }
     }
-
-    return c;
   }
 
  private:

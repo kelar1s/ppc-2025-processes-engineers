@@ -22,8 +22,6 @@ class TabalaevACannonMatMulMPI : public BaseTask {
 
   static void LocalMatrixMultiply(const std::vector<double> &a, const std::vector<double> &b, std::vector<double> &c,
                                   int n);
-  static void SimpleMatrixMultiply(const std::vector<double> &a, const std::vector<double> &b, std::vector<double> &c,
-                                   int n);
 };
 
 }  // namespace tabalaev_a_cannon_mat_mul
