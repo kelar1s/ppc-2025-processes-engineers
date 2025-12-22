@@ -44,7 +44,7 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
     }
 
     input_data_ = std::make_tuple(rc, a, b);
-    std::vector<double> c = MatMul(rc, a, b);
+    std::vector<double> c = SimpleMatrixMultiply(rc, a, b);
     expected_output_ = c;
   }
 
@@ -65,7 +65,8 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
     return input_data_;
   }
 
-  static std::vector<double> MatMul(size_t n, const std::vector<double> &a, const std::vector<double> &b) {
+  static std::vector<double> SimpleMatrixMultiply(size_t n, const std::vector<double> &a,
+                                                  const std::vector<double> &b) {
     std::vector<double> c(n * n, 0.0);
 
     for (size_t i = 0; i < n; ++i) {
@@ -88,16 +89,7 @@ class TabalaevACannonMatMulFuncTests : public ppc::util::BaseRunFuncTests<InType
 
 class TabalaevACannonSeqTests : public TabalaevACannonMatMulFuncTests {};
 
-class TabalaevACannonMpiTests : public TabalaevACannonMatMulFuncTests {
- protected:
-  void SetUp() override {
-    if (!ppc::util::IsUnderMpirun()) {
-      std::cerr << "Is not under mpi run\n";
-      GTEST_SKIP();
-    }
-    TabalaevACannonMatMulFuncTests::SetUp();
-  }
-};
+class TabalaevACannonMpiTests : public TabalaevACannonMatMulFuncTests {};
 
 namespace {
 
@@ -106,16 +98,7 @@ TEST_P(TabalaevACannonSeqTests, SeqTest) {
 }
 
 TEST_P(TabalaevACannonMpiTests, MpiTest) {
-  int world_size = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-  int q = static_cast<int>(std::sqrt(world_size));
-  TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-  size_t n = std::get<0>(params);
-  if (q * q == world_size && n % static_cast<size_t>(q) == 0) {
-    ExecuteTest(GetParam());
-  }
-  std::cerr << "The conditions for matrix multiplication using Cannon's method are not met!\n";
+  ExecuteTest(GetParam());
 }
 
 const std::array<TestType, 6> kSeqParams = {

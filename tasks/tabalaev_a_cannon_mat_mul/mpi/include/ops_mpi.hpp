@@ -17,6 +17,9 @@ class TabalaevACannonMatMulMPI : public BaseTask {
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
+
+  void LocalMatrixMultiply(const std::vector<double> &a, const std::vector<double> &b, std::vector<double> &c, int n);
+  void SimpleMatrixMultiply(const std::vector<double> &a, const std::vector<double> &b, std::vector<double> &c, int n);
 };
 
 }  // namespace tabalaev_a_cannon_mat_mul
