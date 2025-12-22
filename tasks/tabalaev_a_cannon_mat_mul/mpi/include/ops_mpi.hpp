@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "tabalaev_a_cannon_mat_mul/common/include/common.hpp"
 #include "task/include/task.hpp"
 
