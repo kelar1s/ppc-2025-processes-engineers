@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
-#include <mpi.h>
 
 #include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>
-#include <iostream>
 #include <string>
 #include <tuple>
 #include <vector>
