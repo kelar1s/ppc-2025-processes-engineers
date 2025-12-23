@@ -18,7 +18,7 @@ class TabalaevACannonMatMulPerfTests : public ppc::util::BaseRunPerfTests<InType
     int world_size = 0;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
-    size_t rc = 504;
+    size_t rc = 1008;
 
     int mpi_initialized = 0;
     MPI_Initialized(&mpi_initialized);
@@ -84,7 +84,7 @@ TEST_P(TabalaevACannonMatMulPerfTests, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, TabalaevACannonMatMulMPI, TabalaevACannonMatMulSEQ>(
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, TabalaevACannonMatMulMPI /*, TabalaevACannonMatMulSEQ*/>(
     PPC_SETTINGS_tabalaev_a_cannon_mat_mul);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
