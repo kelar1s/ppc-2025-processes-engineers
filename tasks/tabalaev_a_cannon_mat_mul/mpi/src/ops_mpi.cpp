@@ -86,7 +86,7 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
 
   MPI_Datatype block_type = MPI_DATATYPE_NULL;
   MPI_Type_vector(block_size, block_size, n, MPI_DOUBLE, &block_type);
-
+  MPI_Type_commit(&block_type);
   MPI_Datatype resized_block = MPI_DATATYPE_NULL;
   MPI_Type_create_resized(block_type, 0, sizeof(double), &resized_block);
   MPI_Type_commit(&resized_block);
