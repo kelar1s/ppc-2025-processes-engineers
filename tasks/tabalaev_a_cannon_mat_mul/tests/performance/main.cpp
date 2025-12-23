@@ -84,7 +84,7 @@ TEST_P(TabalaevACannonMatMulPerfTests, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, TabalaevACannonMatMulMPI /*, TabalaevACannonMatMulSEQ*/>(
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, TabalaevACannonMatMulMPI, TabalaevACannonMatMulSEQ>(
     PPC_SETTINGS_tabalaev_a_cannon_mat_mul);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
