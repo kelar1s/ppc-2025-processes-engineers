@@ -15,6 +15,7 @@ namespace tabalaev_a_cannon_mat_mul {
 TabalaevACannonMatMulMPI::TabalaevACannonMatMulMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
+  GetOutput() = {};
 }
 
 bool TabalaevACannonMatMulMPI::ValidationImpl() {
