@@ -57,16 +57,16 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
   int q = static_cast<int>(std::sqrt(world_size));
 
   if (q * q != world_size || n % q != 0) {
-    std::vector<double> result(static_cast<size_t>(n) * static_cast<size_t>(n), 0.0);
+    const size_t result_size = static_cast<size_t>(n) * static_cast<size_t>(n);
+    std::vector<double> result(result_size, 0.0);
     if (world_rank == 0) {
       auto &a = std::get<1>(GetInput());
       auto &b = std::get<2>(GetInput());
       LocalMatrixMultiply(a, b, result, n);
     }
-    MPI_Bcast(result.data(), static_cast<int>(result.size()), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    if (!result.empty()) {
-      GetOutput() = result;
-    }
+    MPI_Bcast(result.data(), static_cast<int>(result_size), MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    GetOutput() = result;
 
     return true;
   }
