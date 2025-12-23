@@ -104,17 +104,16 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
         displs[(i * q) + j] = (i * n * block_size) + (j * block_size);
       }
     }
+    auto &a = std::get<1>(GetInput());
+    auto &b = std::get<2>(GetInput());
+    MPI_Scatterv(a.data(), counts.data(), displs.data(), resized_block, local_a.data(), block_elems, MPI_DOUBLE, 0,
+                 grid_comm);
+    MPI_Scatterv(b.data(), counts.data(), displs.data(), resized_block, local_b.data(), block_elems, MPI_DOUBLE, 0,
+                 grid_comm);
+  } else {
+    MPI_Scatterv(nullptr, nullptr, nullptr, resized_block, local_a.data(), block_elems, MPI_DOUBLE, 0, grid_comm);
+    MPI_Scatterv(nullptr, nullptr, nullptr, resized_block, local_b.data(), block_elems, MPI_DOUBLE, 0, grid_comm);
   }
-
-  double *a = nullptr;
-  double *b = nullptr;
-  if (grid_rank == 0) {
-    a = std::get<1>(GetInput()).data();
-    b = std::get<2>(GetInput()).data();
-  }
-
-  MPI_Scatterv(a, counts.data(), displs.data(), resized_block, local_a.data(), block_elems, MPI_DOUBLE, 0, grid_comm);
-  MPI_Scatterv(b, counts.data(), displs.data(), resized_block, local_b.data(), block_elems, MPI_DOUBLE, 0, grid_comm);
 
   int left = 0;
   int right = 0;
