@@ -64,7 +64,10 @@ bool TabalaevACannonMatMulMPI::RunImpl() {
       LocalMatrixMultiply(a, b, result, n);
     }
     MPI_Bcast(result.data(), static_cast<int>(result.size()), MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    GetOutput() = result;
+    if (!result.empty()) {
+      GetOutput() = result;
+    }
+
     return true;
   }
 
