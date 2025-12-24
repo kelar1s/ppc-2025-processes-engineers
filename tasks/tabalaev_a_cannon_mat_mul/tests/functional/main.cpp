@@ -96,15 +96,17 @@ TEST_P(TabalaevACannonMpiTests, MpiTest) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 6> kSeqParams = {
-    std::make_tuple(2, 100, "Small_matrix"),   std::make_tuple(3, 150, "Medium_small_matrix"),
-    std::make_tuple(4, 200, "Medium_matrix"),  std::make_tuple(6, 500, "Medium_large_matrix"),
-    std::make_tuple(10, 1000, "Large_matrix"), std::make_tuple(12, 2000, "Extra_large_matrix")};
+const std::array<TestType, 7> kSeqParams = {
+    std::make_tuple(1, 100, "Small_matrix"),        std::make_tuple(2, 100, "Small_2_matrix"),
+    std::make_tuple(3, 150, "Medium_small_matrix"), std::make_tuple(4, 200, "Medium_matrix"),
+    std::make_tuple(6, 500, "Medium_large_matrix"), std::make_tuple(10, 1000, "Large_matrix"),
+    std::make_tuple(12, 2000, "Extra_large_matrix")};
 
-const std::array<TestType, 6> kMpiParams = {
-    std::make_tuple(2, 100, "Small_matrix"),  std::make_tuple(3, 150, "Medium_small_matrix"),
-    std::make_tuple(4, 200, "Medium_matrix"), std::make_tuple(6, 500, "Medium_large_matrix"),
-    std::make_tuple(8, 1000, "Large_matrix"), std::make_tuple(12, 2000, "Extra_large_matrix")};
+const std::array<TestType, 7> kMpiParams = {
+    std::make_tuple(1, 100, "Small_matrix"),        std::make_tuple(2, 100, "Small_2_matrix"),
+    std::make_tuple(3, 150, "Medium_small_matrix"), std::make_tuple(4, 200, "Medium_matrix"),
+    std::make_tuple(6, 500, "Medium_large_matrix"), std::make_tuple(8, 1000, "Large_matrix"),
+    std::make_tuple(12, 2000, "Extra_large_matrix")};
 
 const auto kSeqTasks =
     ppc::util::AddFuncTask<TabalaevACannonMatMulSEQ, InType>(kSeqParams, PPC_SETTINGS_tabalaev_a_cannon_mat_mul);
